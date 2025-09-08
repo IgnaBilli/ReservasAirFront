@@ -1,6 +1,16 @@
 import HistoryIcon from '@mui/icons-material/History';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import { SeatMap } from '../components/SeatPicker';
+import type { AircraftType } from '../components/SeatPicker';
+import { useEffect, useState } from 'react';
 function SeatSelect() {
+  const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
+  const aircraft: AircraftType = "B737";
+
+  useEffect(() => {
+    console.log(selectedSeats); //Es numerico unicamente!
+  }, [selectedSeats]);
+
   return (
     <div className="flex justify-center flex-col items-center">
       <div className='flex items-center justify-between mt-7'>
@@ -8,7 +18,7 @@ function SeatSelect() {
 
       </div>
       <div className='flex gap-15 mt-6 border-[1px] border-[#939393] p-12 px-20 rounded-[20px] relative mx-4'>
-        <div className='flex absolute text-[#000000] top-[-65px] right-[5px] border-[1px] border-[#939393] p-2 rounded-[5px] items-center gap-2 font-bold'>
+        <div className='flex absolute text-[#000000] top-[-65px] right-[5px] border-[1px] border-[#939393] p-2 rounded-[5px] items-center gap-2 font-bold cursor-pointer'>
             <HistoryIcon/>
             <p className='flex items-center'>Mis Reservas</p>
         </div>
@@ -29,7 +39,7 @@ function SeatSelect() {
             <p className='font-normal '>Boeing 737-800</p>
         </div>
       </div>
-      <div className='mt-5 flex gap-3 text-left'>
+      {/* <div className='mt-5 flex gap-3 text-left'>
         <div className='text-black flex items-center gap-2'>
             <div className='min-w-[24px] min-h-[24px] bg-[#D9D9D9] rounded-[5px]'></div>
             <p className='text-[16px]'>Economica ($450)</p>
@@ -54,7 +64,20 @@ function SeatSelect() {
             <div className='min-w-[24px] min-h-[24px] bg-[#74B5CD] rounded-[5px]'></div>
             <p className='text-[16px]'>Seleccionado</p>
         </div>
+      </div> */}
+          <div className="p-6">
+      <SeatMap
+        aircraft={aircraft}
+        occupied={[1]}
+        reserved={[2,99]}
+        maxSelectable={1}
+        onChange={setSelectedSeats}
+      />
+      {/* Puedes mostrar los asientos seleccionados aquí si quieres */}
+      <div className="mt-4">
+        <h3>Seleccionados: {selectedSeats.join(", ")}</h3>
       </div>
+    </div>
     </div>
   )
 }
