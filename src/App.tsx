@@ -6,7 +6,7 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/asd" element={<SeatSelect />} />
+        <Route path="/*" element={<SeatSelect />} />
         <Route path="/selectseat" element={<SeatSelect />} />
       </Routes>
     </>
