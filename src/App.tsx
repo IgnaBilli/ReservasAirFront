@@ -1,9 +1,14 @@
+import { Route, Routes } from 'react-router-dom'
 import './App.css'
+import SeatSelect from './pages/SeatSelect'
 
 function App() {
   return (
     <>
-      <div className='text-3xl text-red-400 font-bold'>Reservas Y Asientos</div>
+      <Routes>
+        <Route path="/asd" element={<SeatSelect />} />
+        <Route path="/selectseat" element={<SeatSelect />} />
+      </Routes>
     </>
   )
 }
