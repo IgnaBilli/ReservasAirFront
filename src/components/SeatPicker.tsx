@@ -175,6 +175,11 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   // Estado local para asientos seleccionados
   const [selected, setSelected] = useState<number[]>([]);
 
+  // Nuevo useEffect para notificar al padre
+  React.useEffect(() => {
+    onChange?.(selected);
+  }, [selected, onChange]);
+
   // Maneja la selección/deselección de asientos
   const toggle = (code: string) => {
     const row = parseInt(code.match(/\d+/)?.[0] || "0", 10);
@@ -184,7 +189,6 @@ export const SeatMap: React.FC<SeatMapProps> = ({
       const has = prev.includes(num);
       let next = has ? prev.filter((n) => n !== num) : [...prev, num];
       if (!has && next.length > maxSelectable) next = [num];
-      onChange?.(next);
       return next;
     });
   };
