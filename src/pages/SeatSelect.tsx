@@ -1,9 +1,10 @@
+import { useEffect, useState } from 'react';
+import { AircraftType } from '@/interfaces';
 import HistoryIcon from '@mui/icons-material/History';
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
-import { SeatMap } from '../components/SeatPicker';
-import type { AircraftType } from '../components/SeatPicker';
-import { useEffect, useState } from 'react';
-function SeatSelect() {
+import { SeatMap } from '@/components/SeatPicker';
+
+const SeatSelect = () => {
   const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
   const aircraft: AircraftType = "B737";
 
@@ -19,24 +20,24 @@ function SeatSelect() {
       </div>
       <div className='flex gap-15 mt-6 border-[1px] border-[#939393] p-12 px-20 rounded-[20px] relative mx-4'>
         <div className='flex absolute text-[#000000] top-[-65px] right-[5px] border-[1px] border-[#939393] p-2 rounded-[5px] items-center gap-2 font-bold cursor-pointer'>
-            <HistoryIcon/>
-            <p className='flex items-center'>Mis Reservas</p>
+          <HistoryIcon />
+          <p className='flex items-center'>Mis Reservas</p>
         </div>
         <div className='text-[#3A3A3A] text-[18px] font-semibold flex items-center gap-2 text-left'>
-            <FlightTakeoffIcon/>
-            <p>Vuelo AA1234</p>
+          <FlightTakeoffIcon />
+          <p>Vuelo AA1234</p>
         </div>
         <div className='text-[#3A3A3A] text-[16px] font-semibold flex flex-col items-start text-left'>
-            <p>Buenos Aires (EZE)</p>
-            <p className='font-normal'>14:30</p>
+          <p>Buenos Aires (EZE)</p>
+          <p className='font-normal'>14:30</p>
         </div>
         <div className='text-[#3A3A3A] text-[16px] font-semibold flex flex-col items-start text-left'>
-            <p>Mendoza (SAME)</p>
-            <p className='font-normal'>16:30</p>
+          <p>Mendoza (SAME)</p>
+          <p className='font-normal'>16:30</p>
         </div>
         <div className='text-[#3A3A3A] text-[16px] font-semibold flex flex-col items-start text-left'>
-            <p>Aeronave</p>
-            <p className='font-normal '>Boeing 737-800</p>
+          <p>Aeronave</p>
+          <p className='font-normal '>Boeing 737-800</p>
         </div>
       </div>
       {/* <div className='mt-5 flex gap-3 text-left'>
@@ -65,19 +66,19 @@ function SeatSelect() {
             <p className='text-[16px]'>Seleccionado</p>
         </div>
       </div> */}
-          <div className="p-6">
-      <SeatMap
-        aircraft={aircraft}
-        occupied={[1]}
-        reserved={[2,99]}
-        maxSelectable={1}
-        onChange={setSelectedSeats}
-      />
-      {/* Puedes mostrar los asientos seleccionados aquí si quieres */}
-      <div className="mt-4">
-        <h3>Seleccionados: {selectedSeats.join(", ")}</h3>
+      <div className="p-6">
+        <SeatMap
+          aircraft={aircraft}
+          occupied={[1]}
+          reserved={[2, 99]}
+          maxSelectable={1}
+          onChange={setSelectedSeats}
+        />
+        {/* Puedes mostrar los asientos seleccionados aquí si quieres */}
+        <div className="mt-4">
+          <h3>Seleccionados: {selectedSeats.join(", ")}</h3>
+        </div>
       </div>
-    </div>
     </div>
   )
 }
