@@ -1,25 +1,6 @@
-import React, { useMemo, useState } from "react";
-
-// Tipos principales usados en la lógica de asientos
-export type AircraftType = "E190" | "B737" | "A330";
-export type CabinName = "Economy" | "Business" | "First";
-export type SeatState = "available" | "occupied" | "reserved";
-
-// Estructura para definir rangos de cabinas y precios
-export interface CabinRange {
-  name: CabinName;
-  fromRow: number;
-  toRow: number;
-  price: number;
-}
-
-// Configuración de cada tipo de avión
-export interface AircraftConfig {
-  rows: number;
-  blocks: string[];
-  aislesAfterBlock: number[];
-  cabins: CabinRange[];
-}
+import { useEffect, useMemo, useState } from "react";
+import { AIRCRAFTS } from "@/mocks/aircrafts";
+import { AircraftType, CabinName, CabinRange, SeatState } from "@/interfaces";
 
 // Props principales del componente de selección de asientos
 export interface SeatMapProps {
@@ -29,40 +10,6 @@ export interface SeatMapProps {
   maxSelectable?: number;
   onChange?: (selectedCodes: number[]) => void;
 }
-
-// Diccionario con la configuración de cada avión
-const AIRCRAFTS: Record<AircraftType, AircraftConfig> = {
-  E190: {
-    rows: 28,
-    blocks: ["AB", "CD"],
-    aislesAfterBlock: [0],
-    cabins: [
-      { name: "First", fromRow: 1, toRow: 2, price: 700 },
-      { name: "Business", fromRow: 3, toRow: 5, price: 550 },
-      { name: "Economy", fromRow: 6, toRow: 28, price: 400 },
-    ],
-  },
-  B737: {
-    rows: 30,
-    blocks: ["ABC", "DEF"],
-    aislesAfterBlock: [0],
-    cabins: [
-      { name: "First", fromRow: 1, toRow: 4, price: 750 },
-      { name: "Business", fromRow: 5, toRow: 8, price: 600 },
-      { name: "Economy", fromRow: 9, toRow: 30, price: 450 },
-    ],
-  },
-  A330: {
-    rows: 36,
-    blocks: ["AB", "CDEF", "GH"],
-    aislesAfterBlock: [0, 1],
-    cabins: [
-      { name: "First", fromRow: 1, toRow: 3, price: 1100 },
-      { name: "Business", fromRow: 4, toRow: 12, price: 800 },
-      { name: "Economy", fromRow: 13, toRow: 36, price: 520 },
-    ],
-  },
-};
 
 // Calcula la cantidad total de asientos por fila
 const totalSeatsPerRow = (blocks: string[]) => blocks.reduce((sum, b) => sum + b.length, 0);
@@ -101,7 +48,7 @@ const rowCabin = (row: number, cabins: CabinRange[]) =>
 const seatCode = (row: number, letter: string) => `${row}${letter}`;
 
 // Componente para mostrar la leyenda de colores y precios
-const SeatLegend: React.FC<{ cabins: CabinRange[] }> = ({ cabins }) => (
+const SeatLegend = ({ cabins }: { cabins: CabinRange[] }) => (
   <div className="flex gap-4 text-sm text-black">
     {cabins.map((c) => (
       <div key={c.name} className="flex items-center gap-2">
@@ -124,22 +71,24 @@ interface SeatBtnProps {
   onToggle: () => void;
 }
 
-const SeatBtn: React.FC<SeatBtnProps> = ({ code, state, selected, cabin, onToggle }) => {
+const SeatBtn = ({ code, state, selected, cabin, onToggle } : SeatBtnProps) => {
   // Mapa de colores según estado/cabina
   const colorMap: Record<string, string> = {
     occupied: "bg-[#5C6A7F] border-[#5C6A7F] text-white",
     reserved: "bg-[#FFE100] border-[#FFE100] text-black",
+    selected: "bg-[#74B5CD] border-[#74B5CD] text-white",
     First: "bg-[#ACA7BE] border-[#ACA7BE] text-white",
     Business: "bg-[#A3B0BD] border-[#A3B0BD] text-white",
     Economy: "bg-[#D9D9D9] border-[#D9D9D9] text-black",
-    selected: "bg-[#74B5CD] border-[#74B5CD] text-white",
   };
-  let cls = state === "occupied" ? colorMap.occupied
+
+  const cls = state === "occupied" ? colorMap.occupied
     : selected ? colorMap.selected
     : state === "reserved" ? colorMap.reserved
     : colorMap[cabin];
   const disabled = state === "occupied" || state === "reserved";
   const letter = code.replace(/\d+/g, "");
+
   return (
     <button
       type="button"
@@ -154,13 +103,13 @@ const SeatBtn: React.FC<SeatBtnProps> = ({ code, state, selected, cabin, onToggl
 };
 
 // Componente principal que renderiza el mapa de asientos
-export const SeatMap: React.FC<SeatMapProps> = ({
+export const SeatMap = ({
   aircraft,
   occupied = [],
   reserved = [],
   maxSelectable = 1,
   onChange,
-}) => {
+}: SeatMapProps) => {
   // Obtiene la configuración del avión seleccionado
   const cfg = AIRCRAFTS[aircraft];
 
@@ -176,7 +125,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({
   const [selected, setSelected] = useState<number[]>([]);
 
   // Nuevo useEffect para notificar al padre
-  React.useEffect(() => {
+  useEffect(() => {
     onChange?.(selected);
   }, [selected, onChange]);
 

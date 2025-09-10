@@ -1,16 +1,25 @@
-import { Route, Routes } from 'react-router-dom'
-import './App.css'
-import SeatSelect from './pages/SeatSelect'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { routeConfig } from '@/routes/routeConfig';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-function App() {
+const router = createBrowserRouter(routeConfig);
+
+const App = () => {
   return (
     <>
-      <Routes>
-        <Route path="/*" element={<SeatSelect />} />
-        <Route path="/selectseat" element={<SeatSelect />} />
-      </Routes>
+      <RouterProvider router={router} />
+      <ToastContainer
+        position="bottom-left"
+        autoClose={5000}
+        hideProgressBar
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        pauseOnHover
+      />
     </>
-  )
-}
+  );
+};
 
 export default App
