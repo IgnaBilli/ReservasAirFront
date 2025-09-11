@@ -95,7 +95,7 @@ const SeatBtn = ({ code, state, selected, cabin, onToggle } : SeatBtnProps) => {
       aria-label={`${code} ${state}`}
       disabled={disabled}
       onClick={onToggle}
-      className={`w-8 h-8 md:w-9 md:h-9 rounded-md flex items-center justify-center text-[11px] md:text-xs font-semibold border ${cls} disabled:cursor-not-allowed`}
+      className={`w-8 h-8 md:w-9 md:h-9 rounded-t-md flex items-center justify-center text-[11px] md:text-xs font-semibold border ${cls} disabled:cursor-not-allowed`}
     >
       {letter}
     </button>

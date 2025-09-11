@@ -40,32 +40,7 @@ const SeatSelect = () => {
           <p className='font-normal '>Boeing 737-800</p>
         </div>
       </div>
-      {/* <div className='mt-5 flex gap-3 text-left'>
-        <div className='text-black flex items-center gap-2'>
-            <div className='min-w-[24px] min-h-[24px] bg-[#D9D9D9] rounded-[5px]'></div>
-            <p className='text-[16px]'>Economica ($450)</p>
-        </div>
-        <div className='text-black flex items-center gap-2'>
-            <div className='min-w-[24px] min-h-[24px] bg-[#A3B0BD] rounded-[5px]'></div>
-            <p className='text-[16px]'>Business ($600)</p>
-        </div>
-        <div className='text-black flex items-center gap-2'>
-            <div className='min-w-[24px] min-h-[24px] bg-[#ACA7BE] rounded-[5px]'></div>
-            <p className='text-[16px]'>Primera Clase ($750)</p>
-        </div>
-                <div className='text-black flex items-center gap-2'>
-            <div className='min-w-[24px] min-h-[24px] bg-[#5C6A7F] rounded-[5px]'></div>
-            <p className='text-[16px]'>Ocupado</p>
-        </div>
-        <div className='text-black flex items-center gap-2'>
-            <div className='min-w-[24px] min-h-[24px] bg-[#FFE100] rounded-[5px]'></div>
-            <p className='text-[16px]'>Reservado</p>
-        </div>
-        <div className='text-black flex items-center gap-2'>
-            <div className='min-w-[24px] min-h-[24px] bg-[#74B5CD] rounded-[5px]'></div>
-            <p className='text-[16px]'>Seleccionado</p>
-        </div>
-      </div> */}
+
       <div className="p-6">
         <SeatMap
           aircraft={aircraft}
