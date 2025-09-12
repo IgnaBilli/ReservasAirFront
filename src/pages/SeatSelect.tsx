@@ -6,7 +6,7 @@ import { SeatMap } from '@/components/SeatPicker';
 
 const SeatSelect = () => {
   const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
-  const aircraft: AircraftType = "B737";
+  const aircraft: AircraftType = "A330";
 
   useEffect(() => {
     console.log(selectedSeats); //Es numerico unicamente!
@@ -44,15 +44,10 @@ const SeatSelect = () => {
       <div className="p-6">
         <SeatMap
           aircraft={aircraft}
-          occupied={[1]}
-          reserved={[2, 99]}
+          occupied={[1,70,2,6,7,8,9,10]}
           maxSelectable={1}
           onChange={setSelectedSeats}
         />
-        {/* Puedes mostrar los asientos seleccionados aquí si quieres */}
-        <div className="mt-4">
-          <h3>Seleccionados: {selectedSeats.join(", ")}</h3>
-        </div>
       </div>
     </div>
   )

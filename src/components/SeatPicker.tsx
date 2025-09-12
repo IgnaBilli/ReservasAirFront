@@ -6,7 +6,6 @@ import { AircraftType, CabinName, CabinRange, SeatState } from "@/interfaces";
 export interface SeatMapProps {
   aircraft: AircraftType;
   occupied?: number[];
-  reserved?: number[];
   maxSelectable?: number;
   onChange?: (selectedCodes: number[]) => void;
 }
@@ -57,7 +56,6 @@ const SeatLegend = ({ cabins }: { cabins: CabinRange[] }) => (
       </div>
     ))}
     <div className="flex items-center gap-2"><span className="w-5 h-5 rounded bg-[#5C6A7F]" />Ocupado</div>
-    <div className="flex items-center gap-2"><span className="w-5 h-5 rounded bg-[#FFE100]" />Reservado</div>
     <div className="flex items-center gap-2"><span className="w-5 h-5 rounded bg-[#74B5CD]" />Seleccionado</div>
   </div>
 );
@@ -75,7 +73,6 @@ const SeatBtn = ({ code, state, selected, cabin, onToggle } : SeatBtnProps) => {
   // Mapa de colores según estado/cabina
   const colorMap: Record<string, string> = {
     occupied: "bg-[#5C6A7F] border-[#5C6A7F] text-white",
-    reserved: "bg-[#FFE100] border-[#FFE100] text-black",
     selected: "bg-[#74B5CD] border-[#74B5CD] text-white",
     First: "bg-[#ACA7BE] border-[#ACA7BE] text-white",
     Business: "bg-[#A3B0BD] border-[#A3B0BD] text-white",
@@ -84,9 +81,8 @@ const SeatBtn = ({ code, state, selected, cabin, onToggle } : SeatBtnProps) => {
 
   const cls = state === "occupied" ? colorMap.occupied
     : selected ? colorMap.selected
-    : state === "reserved" ? colorMap.reserved
     : colorMap[cabin];
-  const disabled = state === "occupied" || state === "reserved";
+  const disabled = state === "occupied";
   const letter = code.replace(/\d+/g, "");
 
   return (
@@ -106,7 +102,6 @@ const SeatBtn = ({ code, state, selected, cabin, onToggle } : SeatBtnProps) => {
 export const SeatMap = ({
   aircraft,
   occupied = [],
-  reserved = [],
   maxSelectable = 1,
   onChange,
 }: SeatMapProps) => {
@@ -117,9 +112,8 @@ export const SeatMap = ({
   const rows = useMemo(() => Array.from({ length: cfg.rows }, (_, i) => i + 1), [cfg.rows]);
   const blocksLetters = useMemo(() => cfg.blocks.map((b) => b.split("")), [cfg.blocks]);
 
-  // Convierte arrays de ocupados/reservados a Set para búsqueda rápida
+  // Convierte array de ocupados a Set para búsqueda rápida
   const occupiedNums = useMemo(() => new Set(occupied), [occupied]);
-  const reservedNums = useMemo(() => new Set(reserved), [reserved]);
 
   // Estado local para asientos seleccionados
   const [selected, setSelected] = useState<number[]>([]);
@@ -179,8 +173,6 @@ export const SeatMap = ({
                         const isSelected = selected.includes(num);
                         const state: SeatState = occupiedNums.has(num)
                           ? "occupied"
-                          : reservedNums.has(num)
-                          ? "reserved"
                           : "available";
                         const cabin = rowCabin(row, cfg.cabins)?.name ?? "Economy";
                         return (
@@ -208,24 +200,27 @@ export const SeatMap = ({
       </div>
       {/* Panel de información y confirmación */}
       <div className="flex flex-col gap-4 mt-4">
-        {/* Muestra el asiento seleccionado y su precio */}
-        {selected.length > 0 && (() => {
-          const num = selected[0];
-          const { row: rowN, letter } = seatNumToVisual(num, cfg.blocks);
-          const code = seatCode(rowN, letter);
-          const cab = rowCabin(rowN, cfg.cabins);
-          return (
-            <div className="flex items-center justify-between bg-[#eef5f8] rounded-lg px-6 py-4">
-              <div>
-                <div className="font-semibold text-gray-700 text-[16px]">
-                  Asiento Seleccionado: <span className="text-black">{code}</span>
+        {/* Muestra los asientos seleccionados y sus precios */}
+        {selected.length > 0 && (
+          <div className="flex flex-col gap-2">
+            {selected.map((num, index) => {
+              const { row: rowN, letter } = seatNumToVisual(num, cfg.blocks);
+              const code = seatCode(rowN, letter);
+              const cab = rowCabin(rowN, cfg.cabins);
+              return (
+                <div key={num} className="flex items-center justify-between bg-[#eef5f8] rounded-lg px-6 py-4">
+                  <div>
+                    <div className="font-semibold text-gray-700 text-[16px]">
+                      Asiento Seleccionado: <span className="text-black">{code}</span>
+                    </div>
+                    <div className="text-xs text-left text-gray-500">{cab?.name === "First" ? "Primera Clase" : cab?.name === "Business" ? "Business" : "Economica"}</div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-sm">${cab?.price ?? 0}</span>
                 </div>
-                <div className="text-xs text-left text-gray-500">{cab?.name === "First" ? "Primera Clase" : cab?.name === "Business" ? "Business" : "Economica"}</div>
-              </div>
-              <span className="px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-sm">${cab?.price ?? 0}</span>
-            </div>
-          );
-        })()}
+              );
+            })}
+          </div>
+        )}
         {/* Botón para confirmar la reserva */}
         <div className="flex items-center justify-between border rounded-lg px-6 py-4 bg-white">
           <div>
@@ -234,12 +229,11 @@ export const SeatMap = ({
           </div>
           <div className="flex items-center gap-3">
             <span className="px-3 py-1 rounded-full bg-gray-200 text-gray-700 font-semibold text-sm">
-              ${selected.length > 0 ? (() => {
-                const num = selected[0];
+              ${selected.reduce((total, num) => {
                 const { row: rowN } = seatNumToVisual(num, cfg.blocks);
                 const cab = rowCabin(rowN, cfg.cabins);
-                return cab?.price ?? 0;
-              })() : 0}
+                return total + (cab?.price ?? 0);
+              }, 0)}
             </span>
             <button
               className="px-4 py-2 rounded cursor-pointer bg-[#74B5CD] text-white font-semibold disabled:opacity-50"
