@@ -7,7 +7,7 @@ import { CardReservationProps } from '@/interfaces';
 
 function CardReservation({ reservation }: CardReservationProps) {
   return (
-    <div className="flex border-[1px] justify-between border-[#939393] py-12 px-8 gap-16 rounded-[20px]">
+    <div className="flex border-[1px] justify-between border-[#939393] py-12 px-8 gap-16 rounded-[20px] min-h-[251px]">
       <div className="flex flex-col gap-8 text-[#5C6A7F]">
         <div className='flex gap-1 items-center font-bold'>
           <AirplanemodeActiveIcon style={{rotate: '90deg'}}/>
