@@ -6,9 +6,10 @@ import { seatNumToVisual, formatCurrency } from '@/utils';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
-import { Timer } from '@/components/ui/Timer';
+import { GlobalTimer } from '@/components/ui/GlobalTimer';
 import { Modal } from '@/components/ui/Modal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { toast } from 'react-toastify';
 
 const ConfirmationPage = () => {
 	const navigate = useNavigate();
@@ -19,7 +20,8 @@ const ConfirmationPage = () => {
 		resetSelection,
 		isLoading,
 		setLoading,
-		addReservation
+		addReservation,
+		stopTimer
 	} = useAppStore();
 
 	const [showTimeUpModal, setShowTimeUpModal] = useState(false);
@@ -82,7 +84,14 @@ const ConfirmationPage = () => {
 			setShowPaymentModal(false);
 			setCurrentStep('success');
 
+			// Stop the timer when payment is successful
+			stopTimer();
+
+			resetSelection();
 			navigate('/mis-reservas');
+			toast.success("Reserva efectuada con éxito",
+				{ closeButton: false, autoClose: 3000 }
+			);
 		}, 3000);
 	};
 
@@ -109,8 +118,8 @@ const ConfirmationPage = () => {
 	const totalPrice = seatsWithPrices.reduce((total, seat) => total + seat.price, 0);
 
 	const getCabinName = (cabinName?: string) => {
-		return cabinName === "first" ? "Primera Clase" :
-			cabinName === "business" ? "business" : "Economica";
+		return cabinName === "First" ? "Primera Clase" :
+			cabinName === "Business" ? "Business" : "Economica";
 	};
 
 	return (
@@ -121,10 +130,7 @@ const ConfirmationPage = () => {
 					<h1 className="text-3xl font-semibold text-gray-800 mb-4 md:mb-0">
 						Confirmación de Reserva
 					</h1>
-					<Timer
-						initialMinutes={4}
-						onTimeUp={handleTimeUp}
-					/>
+					<GlobalTimer onTimeUp={handleTimeUp} />
 				</div>
 
 				{/* Flight Summary */}
@@ -219,9 +225,8 @@ const ConfirmationPage = () => {
 				{/* Payment Modal */}
 				<Modal
 					size="sm"
-					hideCloseButton
 					isOpen={showPaymentModal}
-					onClose={() => setShowPaymentModal(false)}
+					onClose={() => !isLoading && setShowPaymentModal(false)}
 				>
 					<div className="text-center">
 						{isLoading ? (
@@ -233,6 +238,7 @@ const ConfirmationPage = () => {
 						) : (
 							<>
 								<div className="text-4xl mb-4 text-blue-600">💳</div>
+								<h3 className="text-lg font-semibold mb-2 text-gray-800">Confirmar Pago</h3>
 								<p className="text-gray-600 mb-6">
 									¿Confirmas el pago de {formatCurrency(totalPrice)} por {selectedSeats.length} asiento{selectedSeats.length !== 1 ? 's' : ''}?
 								</p>
@@ -257,10 +263,10 @@ const ConfirmationPage = () => {
 					size="sm"
 					isOpen={showTimeUpModal}
 					onClose={handleTimeUpConfirm}
-					hideCloseButton
 				>
 					<div className="text-center">
 						<div className="text-4xl mb-4 text-yellow-600">⚠️</div>
+						<h3 className="text-lg font-semibold mb-2 text-gray-800">Tiempo Agotado</h3>
 						<p className="text-gray-600 mb-6">
 							El tiempo para completar la reserva ha expirado. <br /> Serás redirigido a la página de búsqueda.
 						</p>

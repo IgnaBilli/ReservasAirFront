@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { Reservation } from '@/interfaces';
-import { Flight } from '@/interfaces';
+import { Flight, Reservation } from '@/interfaces';
 
 interface AppState {
 	// Flight selection
@@ -14,6 +13,11 @@ interface AppState {
 	// Reservations
 	reservations: Reservation[];
 
+	// Global Timer
+	timerStartTime: number | null;
+	timerDuration: number; // in seconds (4 minutes = 240 seconds)
+	isTimerActive: boolean;
+
 	// UI State
 	isLoading: boolean;
 	currentStep: 'search' | 'seats' | 'confirmation' | 'payment' | 'success';
@@ -25,11 +29,16 @@ interface AppState {
 	updateReservation: (id: number, updates: Partial<Reservation>) => void;
 	setLoading: (loading: boolean) => void;
 	setCurrentStep: (step: AppState['currentStep']) => void;
+
+	// Timer actions
+	startTimer: () => void;
+	stopTimer: () => void;
+	getTimeLeft: () => number;
+
 	resetSelection: () => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const useAppStore = create<AppState>((set, _get) => ({
+export const useAppStore = create<AppState>((set, get) => ({
 	// Initial state
 	selectedFlight: null,
 	flights: [],
@@ -57,11 +66,20 @@ export const useAppStore = create<AppState>((set, _get) => ({
 			seatNumber: "1B"
 		}
 	],
+
+	// Timer state
+	timerStartTime: null,
+	timerDuration: 120, // 2 minutes in seconds
+	isTimerActive: false,
+
 	isLoading: false,
 	currentStep: 'search',
 
 	// Actions
-	setSelectedFlight: (flight) => set({ selectedFlight: flight, currentStep: 'seats' }),
+	setSelectedFlight: (flight) => {
+		set({ selectedFlight: flight, currentStep: 'seats' });
+		get().startTimer();
+	},
 
 	setSelectedSeats: (seats) => set({ selectedSeats: seats }),
 
@@ -79,9 +97,32 @@ export const useAppStore = create<AppState>((set, _get) => ({
 
 	setCurrentStep: (step) => set({ currentStep: step }),
 
+	// Timer actions
+	startTimer: () => set({
+		timerStartTime: Date.now(),
+		isTimerActive: true
+	}),
+
+	stopTimer: () => set({
+		isTimerActive: false,
+		timerStartTime: null
+	}),
+
+	getTimeLeft: () => {
+		const state = get();
+		if (!state.isTimerActive || !state.timerStartTime) return 0;
+
+		const elapsed = Math.floor((Date.now() - state.timerStartTime) / 1000);
+		const remaining = Math.max(0, state.timerDuration - elapsed);
+		return remaining;
+	},
+
 	resetSelection: () => set({
 		selectedFlight: null,
 		selectedSeats: [],
-		currentStep: 'search'
+		currentStep: 'search',
+		// Stop timer when resetting
+		isTimerActive: false,
+		timerStartTime: null
 	})
 }));

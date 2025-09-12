@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store/useAppStore';
 import { Button } from '@/components/ui/Button';
-import { Timer } from '@/components/ui/Timer';
+import { GlobalTimer } from '@/components/ui/GlobalTimer';
 import { Modal } from '@/components/ui/Modal';
 import { SeatMap } from './components/SeatMap';
 
@@ -66,8 +66,7 @@ const SeatsSelectionPage = () => {
             Selección de Asiento
           </h1>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <Timer
-              initialMinutes={4}
+            <GlobalTimer
               onTimeUp={handleTimeUp}
             />
             <Button variant="secondary" onClick={handleViewReservations}>

@@ -8,6 +8,7 @@ import { Chip } from '@/components/ui/Chip';
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { toast } from 'react-toastify';
 
 interface CardReservationProps {
   reservation: Reservation;
@@ -26,6 +27,8 @@ const CardReservation = ({ reservation }: CardReservationProps) => {
   const isFlightPast = flightDate < new Date();
   const canRequestRefund = reservation.status === "PAID" && !isFlightPast;
   const canModifySeat = reservation.status !== "PAID" && reservation.status !== "CANCELLED";
+
+  console.log(reservation);
 
   const handleModifySeat = () => {
     // Solo permite modificar si no está pagado
@@ -49,6 +52,9 @@ const CardReservation = ({ reservation }: CardReservationProps) => {
         updatedAt: new Date().toISOString()
       });
       setIsProcessing(false);
+      toast.success("Reembolso solicitado con éxito",
+        { closeButton: false, autoClose: 3000 }
+      );
     }, 2000);
   };
 
@@ -188,7 +194,7 @@ const CardReservation = ({ reservation }: CardReservationProps) => {
       >
         <div className="text-center">
           <p className="text-gray-600 mb-6">
-            ¿Estás seguro que deseas cancelar la reserva #{String(reservation.reservationId).padStart(8, '0')} y solicitar el reembolso? Esta acción no se puede deshacer.
+            ¿Estás seguro que deseas cancelar la reserva #{String(reservation.reservationId).padStart(8, '0')} y solicitar el reembolso? <br /> Esta acción no se puede deshacer.
           </p>
           <div className="flex gap-3 justify-center">
             <Button variant="secondary" onClick={() => setShowCancelModal(false)}>

@@ -7,7 +7,7 @@ export const seatNumToVisual = (num: number, aircraft: AircraftType) => {
   const seatsPerRow = blocks.reduce((sum, b) => sum + b.length, 0);
   const row = Math.ceil(num / seatsPerRow);
   let idx = (num - 1) % seatsPerRow;
-  
+
   for (let b = 0; b < blocks.length; b++) {
     const block = blocks[b];
     if (idx < block.length) {
@@ -28,9 +28,9 @@ export const formatCurrency = (amount: number) => {
 
 export const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('es-AR', {
-    weekday: 'long',
-    year: 'numeric', 
-    month: 'long',
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
     day: 'numeric'
   });
 };
