@@ -15,12 +15,6 @@ export const SelectionSummary = ({
 }: SelectionSummaryProps) => {
 	if (selectedSeats.length === 0) return null;
 
-	const totalPrice = selectedSeats.reduce((total, num) => {
-		const { row } = seatNumToVisual(num, config.blocks);
-		const cabin = rowCabin(row, config.cabins);
-		return total + (cabin?.price ?? 0);
-	}, 0);
-
 	return (
 		<div className="mt-6">
 			<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

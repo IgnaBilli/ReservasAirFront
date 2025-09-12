@@ -69,8 +69,8 @@ const ConfirmationPage = () => {
 				return {
 					seatId,
 					seatNumber: `${row}${letter}`,
-					cabinName: cabin?.name === "First" ? "Primera Clase" :
-						cabin?.name === "Business" ? "Business" : "Economica",
+					cabinName: cabin?.name === "first" ? "Primera Clase" :
+						cabin?.name === "business" ? "Business" : "Economica",
 					price: cabin?.price || 0
 				};
 			});
@@ -138,8 +138,8 @@ const ConfirmationPage = () => {
 	const totalPrice = seatsWithPrices.reduce((total, seat) => total + seat.price, 0);
 
 	const getCabinName = (cabinName?: string) => {
-		return cabinName === "First" ? "Primera Clase" :
-			cabinName === "Business" ? "Business" : "Economica";
+		return cabinName === "first" ? "Primera Clase" :
+			cabinName === "business" ? "Business" : "Economica";
 	};
 
 	return (
