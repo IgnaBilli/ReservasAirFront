@@ -1,21 +1,23 @@
 import { create } from 'zustand';
-import { Reservation, Flight } from '@/interfaces';
+import { Reservation, Flight, FlightSeatAvailability } from '@/interfaces';
+import { reservations } from '@/mocks/reservations';
+import { getFlightSeatAvailability } from '@/mocks/flightSeatsAvailability';
 
 interface AppState {
 	// Flight selection
 	selectedFlight: Flight | null;
 	flights: Flight[];
+	currentFlightAvailability: FlightSeatAvailability | null;
 
 	// Seat selection with persistence
 	selectedSeats: number[];
-	occupiedSeats: number[];
 
 	// Reservations
 	reservations: Reservation[];
 
 	// Global Timer
 	timerStartTime: number | null;
-	timerDuration: number; // in seconds (4 minutes = 240 seconds)
+	timerDuration: number; // in seconds (2 minutes = 120 seconds)
 	isTimerActive: boolean;
 
 	// UI State
@@ -30,6 +32,9 @@ interface AppState {
 	setLoading: (loading: boolean) => void;
 	setCurrentStep: (step: AppState['currentStep']) => void;
 
+	// New actions for flight availability
+	getCurrentFlightOccupiedSeats: () => number[];
+
 	// Timer actions
 	startTimer: () => void;
 	stopTimer: () => void;
@@ -42,9 +47,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 	// Initial state
 	selectedFlight: null,
 	flights: [],
+	currentFlightAvailability: null,
 	selectedSeats: [],
-	occupiedSeats: [1, 70, 2, 6, 7, 8, 9, 10, 15, 23, 45, 67, 89, 102],
-	reservations: [],
+	reservations,
 
 	// Timer state
 	timerStartTime: null,
@@ -56,7 +61,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 	// Actions
 	setSelectedFlight: (flight) => {
-		set({ selectedFlight: flight, currentStep: 'seats' });
+		const availability = getFlightSeatAvailability(flight.id);
+		set({
+			selectedFlight: flight,
+			currentFlightAvailability: availability,
+			currentStep: 'seats',
+			selectedSeats: [] // Reset selected seats when changing flight
+		});
 		get().startTimer();
 	},
 
@@ -75,6 +86,12 @@ export const useAppStore = create<AppState>((set, get) => ({
 	setLoading: (loading) => set({ isLoading: loading }),
 
 	setCurrentStep: (step) => set({ currentStep: step }),
+
+	// New method to get occupied seats for current flight
+	getCurrentFlightOccupiedSeats: () => {
+		const state = get();
+		return state.currentFlightAvailability?.occupiedSeats || [];
+	},
 
 	// Timer actions
 	startTimer: () => set({
@@ -98,6 +115,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 	resetSelection: () => set({
 		selectedFlight: null,
+		currentFlightAvailability: null,
 		selectedSeats: [],
 		currentStep: 'search',
 		// Stop timer when resetting

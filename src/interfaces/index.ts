@@ -32,6 +32,14 @@ export interface Flight {
   price: number;
 }
 
+export interface FlightSeatAvailability {
+  flightId: number;
+  aircraftType: AircraftType;
+  occupiedSeats: number[];
+  reservedSeats: number[]; // Asientos temporalmente reservados
+  lastUpdated: string;
+}
+
 // Estructura para definir rangos de cabinas y precios
 export interface CabinRange {
   name: CabinName;

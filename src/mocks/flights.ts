@@ -2,7 +2,7 @@ import { Flight } from "@/interfaces";
 
 export const mockFlights: Flight[] = [
 	{
-		id: 1,
+		id: 1001,
 		flightNumber: "AA1234",
 		origin: {
 			code: "EZE",
@@ -16,12 +16,12 @@ export const mockFlights: Flight[] = [
 		},
 		aircraft: "A330",
 		aircraftModel: "Airbus A330-200",
-		date: "2026-01-4",
+		date: "2026-01-15",
 		duration: "2h 00m",
 		price: 520
 	},
 	{
-		id: 2,
+		id: 1002,
 		flightNumber: "LA5678",
 		origin: {
 			code: "EZE",
@@ -40,26 +40,26 @@ export const mockFlights: Flight[] = [
 		price: 450
 	},
 	{
-		id: 3,
-		flightNumber: "AR9012",
+		id: 1003,
+		flightNumber: "VM2468",
 		origin: {
 			code: "EZE",
 			city: "Buenos Aires",
-			time: "18:45"
+			time: "20:00"
 		},
 		destination: {
-			code: "IGR",
-			city: "Iguazú",
-			time: "20:30"
+			code: "USH",
+			city: "Ushuaia",
+			time: "23:15"
 		},
 		aircraft: "E190",
 		aircraftModel: "Embraer E190",
-		date: "2025-11-15",
-		duration: "1h 45m",
+		date: "2025-11-20",
+		duration: "3h 15m",
 		price: 400
 	},
 	{
-		id: 4,
+		id: 1004,
 		flightNumber: "FO3456",
 		origin: {
 			code: "EZE",
@@ -78,7 +78,7 @@ export const mockFlights: Flight[] = [
 		price: 520
 	},
 	{
-		id: 5,
+		id: 1005,
 		flightNumber: "JA7890",
 		origin: {
 			code: "EZE",
@@ -95,5 +95,24 @@ export const mockFlights: Flight[] = [
 		date: "2025-11-15",
 		duration: "2h 15m",
 		price: 450
-	}
+	},
+	{
+		id: 1006,
+		flightNumber: "AR9012",
+		origin: {
+			code: "EZE",
+			city: "Buenos Aires",
+			time: "18:45"
+		},
+		destination: {
+			code: "IGR",
+			city: "Iguazú",
+			time: "20:30"
+		},
+		aircraft: "E190",
+		aircraftModel: "Embraer E190",
+		date: "2025-11-15",
+		duration: "1h 45m",
+		price: 400
+	},
 ];

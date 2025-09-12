@@ -8,24 +8,16 @@ import { SeatMap } from './components/SeatMap';
 
 const SeatsSelectionPage = () => {
   const navigate = useNavigate();
+  const [showTimeUpModal, setShowTimeUpModal] = useState(false);
+
   const {
     selectedFlight,
     selectedSeats,
-    occupiedSeats,
+    getCurrentFlightOccupiedSeats, // Nuevo método
     setSelectedSeats,
     setCurrentStep,
     resetSelection
   } = useAppStore();
-
-  const [showTimeUpModal, setShowTimeUpModal] = useState(false);
-
-  useEffect(() => {
-    if (!selectedFlight) {
-      navigate('/');
-      return;
-    }
-    setCurrentStep('seats');
-  }, [selectedFlight, navigate, setCurrentStep]);
 
   const handleTimeUp = () => {
     setShowTimeUpModal(true);
@@ -53,9 +45,18 @@ const SeatsSelectionPage = () => {
     }
   };
 
-  if (!selectedFlight) {
-    return null;
-  }
+  useEffect(() => {
+    if (!selectedFlight) {
+      navigate('/');
+      return;
+    }
+    setCurrentStep('seats');
+  }, [selectedFlight, navigate, setCurrentStep]);
+
+  if (!selectedFlight) return null;
+
+  // Obtener asientos ocupados específicos del vuelo actual
+  const occupiedSeats = getCurrentFlightOccupiedSeats();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -63,7 +64,7 @@ const SeatsSelectionPage = () => {
         {/* Header with Timer */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 bg-white rounded-xl p-4 shadow-sm">
           <h1 className="text-2xl font-semibold text-gray-800 mb-4 lg:mb-0">
-            Selección de Asiento
+            Selección de Asiento - Vuelo {selectedFlight.flightNumber}
           </h1>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <GlobalTimer onTimeUp={handleTimeUp} />
@@ -126,15 +127,18 @@ const SeatsSelectionPage = () => {
               </div>
             </div>
 
-            {/* Instructions */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <h3 className="font-semibold text-gray-800 mb-2">Instrucciones:</h3>
-              <ul className="text-sm text-gray-700 space-y-1">
-                <li>• Selecciona los asientos que desees</li>
-                <li>• Puedes seleccionar múltiples asientos</li>
-                <li>• Haz clic nuevamente para deseleccionar</li>
-                <li>• Los precios varían según la clase</li>
-              </ul>
+            {/* Availability Info Card - Nuevo */}
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+              <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                <span className="w-4 h-4 bg-green-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </span>
+                Disponibilidad
+              </h3>
+              <div className="text-sm text-gray-700">
+                <p><span className="font-medium">{occupiedSeats.length}</span> asientos ocupados</p>
+                <p><span className="font-medium">{selectedSeats.length}</span> asiento{selectedSeats.length !== 1 ? 's' : ''} seleccionado{selectedSeats.length !== 1 ? 's' : ''}</p>
+              </div>
             </div>
 
             {/* Action Buttons */}
@@ -165,10 +169,9 @@ const SeatsSelectionPage = () => {
             <div className="bg-white rounded-xl shadow-sm h-full">
               <SeatMap
                 aircraft={selectedFlight.aircraft}
-                occupied={occupiedSeats}
-                maxSelectable={999}
+                occupied={occupiedSeats} // Usar asientos ocupados específicos del vuelo
+                initialSelected={selectedSeats}
                 onChange={setSelectedSeats}
-                initialSelected={selectedSeats} // Pass persisted selection
               />
             </div>
           </div>
@@ -185,11 +188,12 @@ const SeatsSelectionPage = () => {
           <div className="text-center">
             <div className="text-4xl mb-4 text-yellow-600">⚠️</div>
             <p className="text-gray-600 mb-6">
-              El tiempo para seleccionar asientos ha expirado. Serás redirigido a la página de búsqueda para comenzar nuevamente.
+              El tiempo para seleccionar asientos ha expirado. <br />
+              Serás redirigido a la página de búsqueda.
             </p>
-						<Button variant="primary" onClick={handleTimeUpConfirm} className="w-full">
-							Entendido
-						</Button>
+            <Button variant="primary" onClick={handleTimeUpConfirm} className="w-full">
+              Entendido
+            </Button>
           </div>
         </Modal>
       </div>
