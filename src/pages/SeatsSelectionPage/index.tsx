@@ -66,9 +66,7 @@ const SeatsSelectionPage = () => {
             Selección de Asiento
           </h1>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <GlobalTimer
-              onTimeUp={handleTimeUp}
-            />
+            <GlobalTimer onTimeUp={handleTimeUp} />
             <Button variant="secondary" onClick={handleViewReservations}>
               Mis Reservas
             </Button>
@@ -168,8 +166,9 @@ const SeatsSelectionPage = () => {
               <SeatMap
                 aircraft={selectedFlight.aircraft}
                 occupied={occupiedSeats}
-                maxSelectable={999} // No limit
+                maxSelectable={999}
                 onChange={setSelectedSeats}
+                initialSelected={selectedSeats} // Pass persisted selection
               />
             </div>
           </div>
@@ -177,19 +176,20 @@ const SeatsSelectionPage = () => {
 
         {/* Time Up Modal */}
         <Modal
+          size="sm"
           isOpen={showTimeUpModal}
           onClose={handleTimeUpConfirm}
           title="Tiempo Agotado"
-          size="sm"
+          hideCloseButton
         >
           <div className="text-center">
             <div className="text-4xl mb-4 text-yellow-600">⚠️</div>
             <p className="text-gray-600 mb-6">
               El tiempo para seleccionar asientos ha expirado. Serás redirigido a la página de búsqueda para comenzar nuevamente.
             </p>
-            <Button variant="primary" onClick={handleTimeUpConfirm}>
-              Entendido
-            </Button>
+						<Button variant="primary" onClick={handleTimeUpConfirm} className="w-full">
+							Entendido
+						</Button>
           </div>
         </Modal>
       </div>

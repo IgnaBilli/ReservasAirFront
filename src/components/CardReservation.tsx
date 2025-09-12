@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store/useAppStore';
-import { formatDate } from '@/utils';
+import { formatDate, formatCurrency } from '@/utils';
 import { Reservation } from '@/interfaces';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
@@ -20,18 +20,13 @@ const CardReservation = ({ reservation }: CardReservationProps) => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Simular fecha de vuelo (para el ejemplo, usamos fecha futura)
-  const flightDate = new Date();
-  flightDate.setDate(flightDate.getDate() + 7); // 7 días desde hoy
-
+  // Calculate flight date from reservation date
+  const flightDate = new Date(reservation.flightData.date);
   const isFlightPast = flightDate < new Date();
   const canRequestRefund = reservation.status === "PAID" && !isFlightPast;
   const canModifySeat = reservation.status !== "PAID" && reservation.status !== "CANCELLED";
 
-  console.log(reservation);
-
   const handleModifySeat = () => {
-    // Solo permite modificar si no está pagado
     if (canModifySeat) {
       navigate('/');
     }
@@ -45,16 +40,16 @@ const CardReservation = ({ reservation }: CardReservationProps) => {
     setIsProcessing(true);
     setShowCancelModal(false);
 
-    // Simular procesamiento del reembolso
     setTimeout(() => {
       updateReservation(reservation.reservationId, {
         status: "CANCELLED",
         updatedAt: new Date().toISOString()
       });
       setIsProcessing(false);
-      toast.success("Reembolso solicitado con éxito",
-        { closeButton: false, autoClose: 3000 }
-      );
+      toast.success("Reembolso solicitado con éxito", {
+        closeButton: false,
+        autoClose: 3000
+      });
     }, 2000);
   };
 
@@ -80,6 +75,10 @@ const CardReservation = ({ reservation }: CardReservationProps) => {
     }
   };
 
+  // Format seat numbers for display
+  const seatNumbers = reservation.seats.map(seat => seat.seatNumber).join(', ');
+  const seatCount = reservation.seats.length;
+
   return (
     <>
       <Card className="relative">
@@ -95,32 +94,57 @@ const CardReservation = ({ reservation }: CardReservationProps) => {
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mb-4">
               <div>
                 <p className="text-gray-600 mb-1">📅 Fecha de Reserva</p>
                 <p className="font-semibold text-gray-800">{formatDate(reservation.createdAt)}</p>
               </div>
               <div>
-                <p className="text-gray-600 mb-1">💺 Asiento</p>
-                <p className="font-semibold text-lg text-gray-800">{reservation.seatNumber}</p>
+                <p className="text-gray-600 mb-1">💺 Asiento{seatCount > 1 ? 's' : ''}</p>
+                <p className="font-semibold text-lg text-gray-800" title={seatNumbers}>
+                  {seatCount > 3 ? `${reservation.seats.slice(0, 3).map(s => s.seatNumber).join(', ')}...` : seatNumbers}
+                </p>
+                {seatCount > 1 && (
+                  <p className="text-xs text-gray-500">{seatCount} asientos</p>
+                )}
               </div>
               <div>
-                <p className="text-gray-600 mb-1">🎫 Estado</p>
-                <Chip variant={getStatusVariant(reservation.status)}>
-                  {getStatusText(reservation.status)}
-                </Chip>
+                <p className="text-gray-600 mb-1">💰 Total</p>
+                <p className="font-semibold text-lg text-gray-800">{formatCurrency(reservation.totalPrice)}</p>
               </div>
             </div>
 
-            {/* Flight Details Mock */}
-            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-4 text-sm text-gray-700">
-                <span className="font-semibold">Vuelo: AA1234</span>
-                <span>EZE → SAME</span>
-                <span>14:30 - 16:30</span>
-                <span>{formatDate(flightDate.toISOString())}</span>
+            {/* Flight Details - Real Data */}
+            <div className="bg-gray-50 rounded-lg p-3">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-700">
+                <span className="font-semibold">Vuelo: {reservation.flightData.flightNumber}</span>
+                <span>{reservation.flightData.origin.code} → {reservation.flightData.destination.code}</span>
+                <span>{reservation.flightData.origin.time} - {reservation.flightData.destination.time}</span>
+                <span>{formatDate(reservation.flightData.date)}</span>
+              </div>
+              <div className="mt-1 text-xs text-gray-600">
+                {reservation.flightData.origin.city} → {reservation.flightData.destination.city}
               </div>
             </div>
+
+            {/* Seat Details - Expandable for multiple seats */}
+            {seatCount > 1 && (
+              <div className="mt-3">
+                <details className="text-sm">
+                  <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
+                    Ver detalles de asientos ({seatCount})
+                  </summary>
+                  <div className="mt-2 space-y-1 pl-4 overflow-auto max-h-40">
+                    {reservation.seats.map((seat) => (
+                      <div key={seat.seatId} className="flex justify-between items-center">
+                        <span className="text-gray-700">{seat.seatNumber} - {seat.cabinName}</span>
+                        <span className="text-gray-600">{formatCurrency(seat.price)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              </div>
+            )}
           </div>
 
           {/* Actions */}
@@ -136,7 +160,7 @@ const CardReservation = ({ reservation }: CardReservationProps) => {
 
             <div className="space-y-2">
               <Button
-                variant={canModifySeat ? "secondary" : "secondary"}
+                variant="secondary"
                 size="sm"
                 onClick={handleModifySeat}
                 className="w-full"

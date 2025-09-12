@@ -46,7 +46,7 @@ const ConfirmationPage = () => {
 	};
 
 	const handleModifySeats = () => {
-		// This will persist the selection since we're using the store
+		// Navigate back to seat selection - selectedSeats will persist in store
 		navigate('/seleccionar-asiento');
 	};
 
@@ -59,26 +59,45 @@ const ConfirmationPage = () => {
 
 		// Simular procesamiento de pago
 		setTimeout(() => {
-			// Crear reservas para cada asiento seleccionado
-			selectedSeats.forEach((seatId, index) => {
-				const seatNumber = (() => {
-					const { row, letter } = seatNumToVisual(seatId, selectedFlight!.aircraft);
-					return `${row}${letter}`;
-				})();
+			const aircraftConfig = AIRCRAFTS[selectedFlight!.aircraft];
 
-				const newReservation = {
-					reservationId: Date.now() + index,
-					externalUserId: 1,
-					externalFlightId: selectedFlight!.id,
-					seatId: seatId,
-					status: "PAID",
-					createdAt: new Date().toISOString(),
-					updatedAt: new Date().toISOString(),
-					seatNumber: seatNumber
+			// Crear array de asientos con toda su información
+			const seatsData = selectedSeats.map(seatId => {
+				const { row, letter } = seatNumToVisual(seatId, selectedFlight!.aircraft);
+				const cabin = aircraftConfig.cabins.find(c => row >= c.fromRow && row <= c.toRow);
+
+				return {
+					seatId,
+					seatNumber: `${row}${letter}`,
+					cabinName: cabin?.name === "First" ? "Primera Clase" :
+						cabin?.name === "Business" ? "Business" : "Economica",
+					price: cabin?.price || 0
 				};
-
-				addReservation(newReservation);
 			});
+
+			// Calcular precio total
+			const totalPrice = seatsData.reduce((sum, seat) => sum + seat.price, 0);
+
+			// Crear una sola reserva con múltiples asientos
+			const newReservation = {
+				reservationId: Date.now(),
+				externalUserId: 1,
+				externalFlightId: selectedFlight!.id,
+				flightData: {
+					flightNumber: selectedFlight!.flightNumber,
+					origin: selectedFlight!.origin,
+					destination: selectedFlight!.destination,
+					date: selectedFlight!.date,
+					aircraftModel: selectedFlight!.aircraftModel
+				},
+				seats: seatsData,
+				totalPrice,
+				status: "PAID",
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			};
+
+			addReservation(newReservation);
 
 			setLoading(false);
 			setShowPaymentModal(false);
@@ -89,9 +108,10 @@ const ConfirmationPage = () => {
 
 			resetSelection();
 			navigate('/mis-reservas');
-			toast.success("Reserva efectuada con éxito",
-				{ closeButton: false, autoClose: 3000 }
-			);
+			toast.success("Reserva efectuada con éxito", {
+				closeButton: false,
+				autoClose: 3000
+			});
 		}, 3000);
 	};
 

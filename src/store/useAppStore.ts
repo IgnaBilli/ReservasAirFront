@@ -1,12 +1,12 @@
 import { create } from 'zustand';
-import { Flight, Reservation } from '@/interfaces';
+import { Reservation, Flight } from '@/interfaces';
 
 interface AppState {
 	// Flight selection
 	selectedFlight: Flight | null;
 	flights: Flight[];
 
-	// Seat selection
+	// Seat selection with persistence
 	selectedSeats: number[];
 	occupiedSeats: number[];
 
@@ -44,28 +44,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 	flights: [],
 	selectedSeats: [],
 	occupiedSeats: [1, 70, 2, 6, 7, 8, 9, 10, 15, 23, 45, 67, 89, 102],
-	reservations: [
-		{
-			reservationId: 30,
-			externalUserId: 1,
-			externalFlightId: 1,
-			seatId: 11,
-			status: "PAID",
-			createdAt: "2025-09-11T17:44:36.000Z",
-			updatedAt: "2025-09-11T17:55:56.000Z",
-			seatNumber: "1A"
-		},
-		{
-			reservationId: 7,
-			externalUserId: 1,
-			externalFlightId: 1,
-			seatId: 12,
-			status: "CANCELLED",
-			createdAt: "2025-09-11T18:02:32.000Z",
-			updatedAt: "2025-09-11T18:16:56.000Z",
-			seatNumber: "1B"
-		}
-	],
+	reservations: [],
 
 	// Timer state
 	timerStartTime: null,

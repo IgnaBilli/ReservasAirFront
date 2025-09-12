@@ -36,16 +36,17 @@ const MyReservationsPage = () => {
           </div>
         ) : (
           <Card className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">📝</div>
             <h3 className="text-xl font-semibold text-gray-600 mb-2">
-              No tienes reservas
+              No tenés reservas aún
             </h3>
             <p className="text-gray-500 mb-6">
-              Busca y reserva tu próximo vuelo para ver tus reservas aquí.
+              Buscá y reserva tu próximo vuelo para verlo acá.
             </p>
-            <Button variant="primary" onClick={handleBackToSearch}>
-              Buscar Vuelos
-            </Button>
+            <div className="mb-3 flex justify-center">
+              <Button variant="primary" onClick={handleBackToSearch}>
+                Buscar Vuelos
+              </Button>
+            </div>
           </Card>
         )}
       </div>

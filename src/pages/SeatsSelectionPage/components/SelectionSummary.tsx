@@ -2,7 +2,6 @@ import { AircraftConfig, CabinRange } from '@/interfaces';
 
 interface SelectionSummaryProps {
 	selectedSeats: number[];
-	maxSelectable: number;
 	config: AircraftConfig;
 	seatNumToVisual: (num: number, blocks: string[]) => { row: number; letter: string };
 	rowCabin: (row: number, cabins: CabinRange[]) => CabinRange | undefined;
@@ -10,7 +9,6 @@ interface SelectionSummaryProps {
 
 export const SelectionSummary = ({
 	selectedSeats,
-	maxSelectable,
 	config,
 	seatNumToVisual,
 	rowCabin
@@ -44,20 +42,8 @@ export const SelectionSummary = ({
 							})}
 						</div>
 					</div>
-					<div className="text-right">
-						<p className="text-sm text-gray-600">Total</p>
-						<p className="text-xl font-bold text-[#74B5CD]">
-							${totalPrice}
-						</p>
-					</div>
 				</div>
 			</div>
-
-			{maxSelectable > 1 && (
-				<div className="mt-2 text-center text-sm text-gray-600">
-					Máximo {maxSelectable} asientos. {maxSelectable - selectedSeats.length} restantes.
-				</div>
-			)}
 		</div>
 	);
 };

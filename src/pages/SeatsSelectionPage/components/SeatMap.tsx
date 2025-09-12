@@ -16,19 +16,27 @@ export interface SeatMapProps {
 	occupied?: number[];
 	maxSelectable?: number;
 	onChange?: (selectedCodes: number[]) => void;
+	initialSelected?: number[];
 }
 
 export const SeatMap = ({
 	aircraft,
 	occupied = [],
-	maxSelectable = 999, // Default to no practical limit
+	maxSelectable = 999,
 	onChange,
+	initialSelected = [] // Default to empty array
 }: SeatMapProps) => {
+	const [selected, setSelected] = useState<number[]>(initialSelected);
+
 	const cfg = AIRCRAFTS[aircraft];
 	const rows = useMemo(() => Array.from({ length: cfg.rows }, (_, i) => i + 1), [cfg.rows]);
 	const blocksLetters = useMemo(() => cfg.blocks.map((b) => b.split("")), [cfg.blocks]);
 	const occupiedNums = useMemo(() => new Set(occupied), [occupied]);
-	const [selected, setSelected] = useState<number[]>([]);
+
+	// Update selected seats when initialSelected changes
+	useEffect(() => {
+		setSelected(initialSelected);
+	}, [initialSelected]);
 
 	useEffect(() => {
 		onChange?.(selected);
@@ -80,7 +88,6 @@ export const SeatMap = ({
 			{/* Selection Summary */}
 			<SelectionSummary
 				selectedSeats={selected}
-				maxSelectable={maxSelectable}
 				config={cfg}
 				seatNumToVisual={seatNumToVisual}
 				rowCabin={rowCabin}
