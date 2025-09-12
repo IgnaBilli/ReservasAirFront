@@ -1,30 +1,28 @@
 import { type RouteObject } from 'react-router-dom';
-import SeatSelect from '@/pages/SeatSelect';
-import Reservations from '@/pages/Reservations';
+import FlightSearchPage from '@/pages/FlightSearchPage';
+import SeatsSelectionPage from '@/pages/SeatsSelectionPage';
+import ConfirmationPage from '@/pages/ConfirmationPage';
+import MyReservationsPage from '@/pages/MyReservationsPage';
 
 export const routeConfig: RouteObject[] = [
-  // Public routes
-  {
-    path: '/selectseat',
-    element: <SeatSelect />,
-  },
-
-  {
-    path: '/reservations',
-    element: <Reservations />,
-  },
-
-  // Private routes
   {
     path: '/',
-    element: (
-      <SeatSelect />
-    ),
-    children: [
-
-    ],
+    element: <FlightSearchPage />,
   },
-
-  // Catch all - moved to end and changed to SeatSelect
-  { path: '*', element: <SeatSelect /> },
+  {
+    path: '/seleccionar-asiento',
+    element: <SeatsSelectionPage />,
+  },
+  {
+    path: '/confirmar-seleccion',
+    element: <ConfirmationPage />,
+  },
+  {
+    path: '/mis-reservas',
+    element: <MyReservationsPage />,
+  },
+  {
+    path: '*',
+    element: <FlightSearchPage />
+  }
 ];
