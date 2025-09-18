@@ -25,6 +25,7 @@ export interface Flight {
     city: string;
     time: string;
   };
+  freeSeats?: number;
   aircraft: AircraftType;
   aircraftModel: string;
   date: string;
@@ -65,7 +66,7 @@ export type Reservation = {
       city: string;
       time: string;
     };
-    date: string;
+    flightDate: string;
     aircraftModel: string;
   };
   seats: Array<{

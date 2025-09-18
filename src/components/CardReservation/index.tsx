@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAppStore } from '@/store/useAppStore';
+// src/components/CardReservation/CardReservation.tsx
+import { useCardReservation } from './useCardReservation';
 import { formatDate, formatCurrency } from '@/utils';
 import { Reservation } from '@/interfaces';
 import { Button } from '@/components/ui/Button';
@@ -8,76 +7,26 @@ import { Chip } from '@/components/ui/Chip';
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { toast } from 'react-toastify';
 
 interface CardReservationProps {
   reservation: Reservation;
+  onCancelReservation: (reservationId: number) => void;
+  isCancelling: boolean;
 }
 
-const CardReservation = ({ reservation }: CardReservationProps) => {
-  const navigate = useNavigate();
-  const { updateReservation } = useAppStore();
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  // Calculate flight date from reservation date
-  const flightDate = new Date(reservation.flightData.date);
-  const isFlightPast = flightDate < new Date();
-  const canRequestRefund = reservation.status === "PAID" && !isFlightPast;
-  const canModifySeat = reservation.status !== "PAID" && reservation.status !== "CANCELLED";
-
-  const handleModifySeat = () => {
-    if (canModifySeat) {
-      navigate('/');
-    }
-  };
-
-  const handleRequestRefund = () => {
-    setShowCancelModal(true);
-  };
-
-  const handleConfirmRefund = async () => {
-    setIsProcessing(true);
-    setShowCancelModal(false);
-
-    setTimeout(() => {
-      updateReservation(reservation.reservationId, {
-        status: "CANCELLED",
-        updatedAt: new Date().toISOString()
-      });
-      setIsProcessing(false);
-      toast.success("Reembolso solicitado con éxito", {
-        closeButton: false,
-        autoClose: 3000
-      });
-    }, 2000);
-  };
-
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case "PAID":
-        return "success";
-      case "CANCELLED":
-        return "danger";
-      default:
-        return "default";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "PAID":
-        return "Pagado";
-      case "CANCELLED":
-        return "Cancelado";
-      default:
-        return "Pendiente";
-    }
-  };
-
-  // Format seat numbers for display
-  const seatNumbers = reservation.seats.map(seat => seat.seatNumber).join(', ');
-  const seatCount = reservation.seats.length;
+const CardReservation = ({ reservation, onCancelReservation, isCancelling }: CardReservationProps) => {
+  const {
+    canRequestRefund,
+    showCancelModal,
+    isProcessing,
+    seatNumbers,
+    seatCount,
+    handleRequestRefund,
+    handleConfirmRefund,
+    setShowCancelModal,
+    getStatusVariant,
+    getStatusText
+  } = useCardReservation({ reservation, onCancelReservation, isCancelling });
 
   return (
     <>
@@ -120,7 +69,7 @@ const CardReservation = ({ reservation }: CardReservationProps) => {
                 <span className="font-semibold">Vuelo: {reservation.flightData.flightNumber}</span>
                 <span>{reservation.flightData.origin.code} → {reservation.flightData.destination.code}</span>
                 <span>{reservation.flightData.origin.time} - {reservation.flightData.destination.time}</span>
-                <span>{formatDate(reservation.flightData.date)}</span>
+                <span>{formatDate(reservation.flightData.flightDate)}</span>
               </div>
               <div className="mt-1 text-xs text-gray-600">
                 {reservation.flightData.origin.city} → {reservation.flightData.destination.city}
@@ -134,7 +83,7 @@ const CardReservation = ({ reservation }: CardReservationProps) => {
                   <summary className="cursor-pointer text-gray-600 hover:text-gray-800">
                     Ver detalles de asientos ({seatCount})
                   </summary>
-                  <div className="mt-2 space-y-1 pl-4 overflow-auto max-h-40">
+                  <div className="mt-2 space-y-1 pl-4 pr-4 overflow-auto max-h-40">
                     {reservation.seats.map((seat) => (
                       <div key={seat.seatId} className="flex justify-between items-center">
                         <span className="text-gray-700">{seat.seatNumber} - {seat.cabinName}</span>
@@ -159,22 +108,6 @@ const CardReservation = ({ reservation }: CardReservationProps) => {
             </div>
 
             <div className="space-y-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleModifySeat}
-                className="w-full"
-                disabled={!canModifySeat || isProcessing}
-              >
-                Modificar Asiento →
-              </Button>
-
-              {!canModifySeat && reservation.status === "PAID" && (
-                <div className="text-xs text-gray-500 text-center">
-                  Los asientos pagados no pueden modificarse
-                </div>
-              )}
-
               {canRequestRefund && (
                 <Button
                   variant="danger"

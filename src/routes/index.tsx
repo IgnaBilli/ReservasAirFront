@@ -1,8 +1,8 @@
 import { type RouteObject } from 'react-router-dom';
-import FlightSearchPage from '@/pages/FlightSearchPage';
-import SeatsSelectionPage from '@/pages/SeatsSelectionPage';
-import ConfirmationPage from '@/pages/ConfirmationPage';
-import MyReservationsPage from '@/pages/MyReservationsPage';
+import FlightSearchPage from '@/pages/FlightSearch/FlightSearchPage';
+import SeatsSelectionPage from '@/pages/SeatsSelection/SeatsSelectionPage';
+import ConfirmationPage from '@/pages/Confirmation/ConfirmationPage';
+import MyReservationsPage from '@/pages/MyReservations/MyReservationsPage';
 
 export const routeConfig: RouteObject[] = [
   {
@@ -10,11 +10,11 @@ export const routeConfig: RouteObject[] = [
     element: <FlightSearchPage />,
   },
   {
-    path: '/seleccionar-asiento',
+    path: '/seleccionar-asientos/:id',
     element: <SeatsSelectionPage />,
   },
   {
-    path: '/confirmar-seleccion',
+    path: '/confirmar-seleccion/:id',
     element: <ConfirmationPage />,
   },
   {

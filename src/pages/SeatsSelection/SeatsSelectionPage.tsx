@@ -1,62 +1,37 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAppStore } from '@/store/useAppStore';
+// src/pages/SeatsSelection/SeatsSelectionPage.tsx
+import { useSeatsSelection } from './useSeatsSelection';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Button } from '@/components/ui/Button';
 import { GlobalTimer } from '@/components/ui/GlobalTimer';
 import { Modal } from '@/components/ui/Modal';
 import { SeatMap } from './components/SeatMap';
 
 const SeatsSelectionPage = () => {
-  const navigate = useNavigate();
-  const [showTimeUpModal, setShowTimeUpModal] = useState(false);
-
   const {
     selectedFlight,
     selectedSeats,
-    getCurrentFlightOccupiedSeats, // Nuevo método
-    setSelectedSeats,
-    setCurrentStep,
-    resetSelection
-  } = useAppStore();
-
-  const handleTimeUp = () => {
-    setShowTimeUpModal(true);
-  };
-
-  const handleTimeUpConfirm = () => {
-    setShowTimeUpModal(false);
-    resetSelection();
-    navigate('/');
-  };
-
-  const handleBackToSearch = () => {
-    resetSelection();
-    navigate('/');
-  };
-
-  const handleViewReservations = () => {
-    navigate('/mis-reservas');
-  };
-
-  const handleConfirmSelection = () => {
-    if (selectedSeats.length > 0) {
-      setCurrentStep('confirmation');
-      navigate('/confirmar-seleccion');
-    }
-  };
-
-  useEffect(() => {
-    if (!selectedFlight) {
-      navigate('/');
-      return;
-    }
-    setCurrentStep('seats');
-  }, [selectedFlight, navigate, setCurrentStep]);
+    occupiedSeats,
+    isLoading,
+    showTimeUpModal,
+    showErrorModal,
+    handleTimeUp,
+    handleTimeUpConfirm,
+    handleErrorConfirm,
+    handleBackToSearch,
+    handleViewReservations,
+    handleConfirmSelection,
+    setSelectedSeats
+  } = useSeatsSelection();
 
   if (!selectedFlight) return null;
 
-  // Obtener asientos ocupados específicos del vuelo actual
-  const occupiedSeats = getCurrentFlightOccupiedSeats();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -127,7 +102,7 @@ const SeatsSelectionPage = () => {
               </div>
             </div>
 
-            {/* Availability Info Card - Nuevo */}
+            {/* Availability Info Card */}
             <div className="bg-green-50 border border-green-200 rounded-xl p-4">
               <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
                 <span className="w-4 h-4 bg-green-600 rounded-full flex items-center justify-center">
@@ -169,7 +144,7 @@ const SeatsSelectionPage = () => {
             <div className="bg-white rounded-xl shadow-sm h-full">
               <SeatMap
                 aircraft={selectedFlight.aircraft}
-                occupied={occupiedSeats} // Usar asientos ocupados específicos del vuelo
+                occupied={occupiedSeats}
                 initialSelected={selectedSeats}
                 onChange={setSelectedSeats}
               />
@@ -193,6 +168,26 @@ const SeatsSelectionPage = () => {
             </p>
             <Button variant="primary" onClick={handleTimeUpConfirm} className="w-full">
               Entendido
+            </Button>
+          </div>
+        </Modal>
+
+        {/* Error Modal */}
+        <Modal
+          size="sm"
+          isOpen={showErrorModal}
+          onClose={handleErrorConfirm}
+          title="Error de Conexión"
+          hideCloseButton
+        >
+          <div className="text-center">
+            <div className="text-4xl mb-4 text-red-600">⚠️</div>
+            <p className="text-gray-600 mb-6">
+              No se pudo cargar la disponibilidad de asientos. <br />
+              Por favor, intenta nuevamente más tarde.
+            </p>
+            <Button variant="primary" onClick={handleErrorConfirm} className="w-full">
+              Aceptar
             </Button>
           </div>
         </Modal>

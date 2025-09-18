@@ -1,146 +1,34 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AIRCRAFTS } from '@/mocks/aircrafts';
-import { useAppStore } from '@/store/useAppStore';
-import { seatNumToVisual, formatCurrency } from '@/utils';
+// src/pages/Confirmation/ConfirmationPage.tsx
+import { useConfirmation } from './useConfirmation';
+import { formatCurrency } from '@/utils';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { GlobalTimer } from '@/components/ui/GlobalTimer';
 import { Modal } from '@/components/ui/Modal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { toast } from 'react-toastify';
 
 const ConfirmationPage = () => {
-	const navigate = useNavigate();
 	const {
 		selectedFlight,
 		selectedSeats,
-		setCurrentStep,
-		resetSelection,
+		seatsWithPrices,
+		totalPrice,
 		isLoading,
-		setLoading,
-		addReservation,
-		stopTimer
-	} = useAppStore();
-
-	const [showTimeUpModal, setShowTimeUpModal] = useState(false);
-	const [showPaymentModal, setShowPaymentModal] = useState(false);
-
-	useEffect(() => {
-		if (!selectedFlight || selectedSeats.length === 0) {
-			navigate('/');
-			return;
-		}
-		setCurrentStep('confirmation');
-	}, [selectedFlight, selectedSeats, navigate, setCurrentStep]);
-
-	const handleTimeUp = () => {
-		setShowTimeUpModal(true);
-	};
-
-	const handleTimeUpConfirm = () => {
-		setShowTimeUpModal(false);
-		resetSelection();
-		navigate('/');
-	};
-
-	const handleModifySeats = () => {
-		// Navigate back to seat selection - selectedSeats will persist in store
-		navigate('/seleccionar-asiento');
-	};
-
-	const handleProceedToPayment = () => {
-		setShowPaymentModal(true);
-	};
-
-	const handleConfirmPayment = async () => {
-		setLoading(true);
-
-		// Simular procesamiento de pago
-		setTimeout(() => {
-			const aircraftConfig = AIRCRAFTS[selectedFlight!.aircraft];
-
-			// Crear array de asientos con toda su información
-			const seatsData = selectedSeats.map(seatId => {
-				const { row, letter } = seatNumToVisual(seatId, selectedFlight!.aircraft);
-				const cabin = aircraftConfig.cabins.find(c => row >= c.fromRow && row <= c.toRow);
-
-				return {
-					seatId,
-					seatNumber: `${row}${letter}`,
-					cabinName: cabin?.name === "first" ? "Primera Clase" :
-						cabin?.name === "business" ? "Business" : "Economica",
-					price: cabin?.price || 0
-				};
-			});
-
-			// Calcular precio total
-			const totalPrice = seatsData.reduce((sum, seat) => sum + seat.price, 0);
-
-			// Crear una sola reserva con múltiples asientos
-			const newReservation = {
-				reservationId: Date.now(),
-				externalUserId: 1,
-				externalFlightId: selectedFlight!.id,
-				flightData: {
-					flightNumber: selectedFlight!.flightNumber,
-					origin: selectedFlight!.origin,
-					destination: selectedFlight!.destination,
-					date: selectedFlight!.date,
-					aircraftModel: selectedFlight!.aircraftModel
-				},
-				seats: seatsData,
-				totalPrice,
-				status: "PAID",
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString()
-			};
-
-			addReservation(newReservation);
-
-			setLoading(false);
-			setShowPaymentModal(false);
-			setCurrentStep('success');
-
-			// Stop the timer when payment is successful
-			stopTimer();
-
-			resetSelection();
-			navigate('/mis-reservas');
-			toast.success("Reserva efectuada con éxito", {
-				closeButton: false,
-				autoClose: 3000
-			});
-		}, 3000);
-	};
+		showTimeUpModal,
+		showPaymentModal,
+		handleTimeUp,
+		handleTimeUpConfirm,
+		handleModifySeats,
+		handleProceedToPayment,
+		handleConfirmPayment,
+		setShowPaymentModal,
+		getCabinName
+	} = useConfirmation();
 
 	if (!selectedFlight || selectedSeats.length === 0) {
 		return null;
 	}
-
-	const aircraftConfig = AIRCRAFTS[selectedFlight.aircraft];
-
-	// Crear array de asientos con precios y ordenar por precio
-	const seatsWithPrices = selectedSeats.map(seatId => {
-		const { row, letter } = seatNumToVisual(seatId, selectedFlight.aircraft);
-		const cabin = aircraftConfig.cabins.find(c => row >= c.fromRow && row <= c.toRow);
-		return {
-			seatId,
-			row,
-			letter,
-			seatNumber: `${row}${letter}`,
-			cabin,
-			price: cabin?.price || 0
-		};
-	}).sort((a, b) => b.price - a.price); // Ordenar por precio descendente
-
-	const totalPrice = seatsWithPrices.reduce((total, seat) => total + seat.price, 0);
-
-	const getCabinName = (cabinName?: string) => {
-		return cabinName === "first" ? "Primera Clase" :
-			cabinName === "business" ? "Business" : "Economica";
-	};
 
 	return (
 		<div className="min-h-screen bg-gray-50 py-4">

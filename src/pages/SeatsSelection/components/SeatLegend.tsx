@@ -17,7 +17,7 @@ export const SeatLegend = ({ cabins }: SeatLegendProps) => (
 						}`}
 				/>
 				<span>
-					{c.name === "first" ? "Primera Clase" : c.name === "business" ? "business" : "Economica"} (${c.price})
+					{c.name === "first" ? "Primera Clase" : c.name === "business" ? "Business" : "Economica"} (${c.price})
 				</span>
 			</div>
 		))}
