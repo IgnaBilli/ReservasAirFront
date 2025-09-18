@@ -1,5 +1,5 @@
 // src/services/api.ts
-const API_BASE_URL = "https://reservasairback.onrender.com";
+const API_BASE_URL = "https://reservasairback-production.up.railway.app";
 
 // Helper para manejar respuestas
 async function handleResponse<T>(response: Response): Promise<T> {
