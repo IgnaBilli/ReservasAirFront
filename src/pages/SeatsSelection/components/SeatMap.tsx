@@ -9,7 +9,7 @@ import {
 	seatNumToVisual,
 	rowCabin,
 	seatCode
-} from "@/pages/SeatsSelectionPage/components";
+} from "@/pages/SeatsSelection/components";
 
 export interface SeatMapProps {
 	aircraft: AircraftType;
@@ -32,8 +32,6 @@ export const SeatMap = ({
 	const rows = useMemo(() => Array.from({ length: cfg.rows }, (_, i) => i + 1), [cfg.rows]);
 	const blocksLetters = useMemo(() => cfg.blocks.map((b) => b.split("")), [cfg.blocks]);
 	const occupiedNums = useMemo(() => new Set(occupied), [occupied]);
-
-	console.log("SeatMap Rendered:", { aircraft, occupied });
 
 	// Update selected seats when initialSelected changes
 	useEffect(() => {
