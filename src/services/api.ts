@@ -1,6 +1,7 @@
 // src/services/api.ts
 import { FlightSeatAvailability } from '@/interfaces';
-const API_BASE_URL = "https://reservasairback-production.up.railway.app";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 // Helper para manejar respuestas
 async function handleResponse<T>(response: Response): Promise<T> {
