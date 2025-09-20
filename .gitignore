@@ -15,8 +15,8 @@ dist
 dist-ssr
 
 # Local env files (⚠️ muy importante no subir .env)
-#.env
-#.env.*
+.env
+.env.*
 
 # Archivos locales temporales
 *.local
