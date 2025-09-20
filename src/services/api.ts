@@ -1,4 +1,5 @@
 // src/services/api.ts
+import { FlightSeatAvailability } from '@/interfaces';
 const API_BASE_URL = "https://reservasairback-production.up.railway.app";
 
 // Helper para manejar respuestas
@@ -15,9 +16,9 @@ export const flightsService = {
     return handleResponse(response);
   },
 
-  getSeatsByFlightId: async (externalFlightId: number) => {
+  getSeatsByFlightId: async (externalFlightId: number): Promise<FlightSeatAvailability> => {
     const response = await fetch(`${API_BASE_URL}/seats/flight/${externalFlightId}`);
-    return handleResponse(response);
+    return handleResponse<FlightSeatAvailability>(response);
   }
 };
 
