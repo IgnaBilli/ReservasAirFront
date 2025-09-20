@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
 import { flightsService } from '@/services/api';
-import { FlightSeatAvailability } from '@/interfaces';
 
 export const useSeatsSelection = () => {
 	const navigate = useNavigate();
@@ -24,9 +23,9 @@ export const useSeatsSelection = () => {
 		data: seatAvailability,
 		isLoading,
 		error
-	} = useQuery<FlightSeatAvailability>({
+	} = useQuery({
 		queryKey: ['seatAvailability', selectedFlight?.id],
-		queryFn: () => flightsService.getSeatsByFlightId(selectedFlight!.id) as Promise<FlightSeatAvailability>,
+		queryFn: () => flightsService.getSeatsByFlightId(selectedFlight!.id),
 		enabled: !!selectedFlight?.id,
 		staleTime: 1000 * 30, // 30 seconds - seats can change quickly
 		refetchInterval: 1000 * 30, // Refetch every 30 seconds to get updates
@@ -79,11 +78,11 @@ export const useSeatsSelection = () => {
 	};
 
 	// Combine occupied and reserved seats from API
-	const getOccupiedSeats = (): number[] => {
+	const getOccupiedSeats = () => {
 		if (!seatAvailability) return [];
 		return [
-			...(seatAvailability.occupiedSeats || []),
-			...(seatAvailability.reservedSeats || [])
+			...(seatAvailability?.occupiedSeats || []),
+			...(seatAvailability?.reservedSeats || [])
 		];
 	};
 
