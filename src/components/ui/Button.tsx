@@ -8,6 +8,7 @@ interface ButtonProps {
 	loading?: boolean;
 	onClick?: () => void;
 	className?: string;
+	type?: 'button' | 'submit' | 'reset';
 }
 
 export const Button = ({
@@ -17,7 +18,8 @@ export const Button = ({
 	disabled,
 	loading,
 	onClick,
-	className = ''
+	className = '',
+	type = 'button'
 }: ButtonProps) => {
 	const baseClasses = 'font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
@@ -36,6 +38,7 @@ export const Button = ({
 
 	return (
 		<button
+			type={type}
 			onClick={onClick}
 			disabled={disabled || loading}
 			className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}

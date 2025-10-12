@@ -1,10 +1,15 @@
 // src/store/useAppStore.ts
 import { create } from 'zustand';
-import { Flight } from '@/interfaces';
+import { Flight, User } from '@/interfaces';
+import { authService } from '@/services/api';
 
 interface AppState {
-	// User
-	userId: number; // For this example, we'll use a fixed userId
+	// Auth
+	user: User | null;
+	isAuthenticated: boolean;
+	
+	// User (legacy - will use user.id from auth)
+	userId: number;
 
 	// Flight selection
 	selectedFlight: Flight | null;
@@ -20,6 +25,11 @@ interface AppState {
 	// UI State
 	isLoading: boolean;
 	currentStep: 'search' | 'seats' | 'confirmation' | 'payment' | 'success';
+
+	// Auth Actions
+	setUser: (user: User | null) => void;
+	logout: () => void;
+	initAuth: () => void;
 
 	// Actions
 	setSelectedFlight: (flight: Flight) => void;
@@ -37,17 +47,44 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set, get) => ({
 	// Initial state
-	userId: 1, // Fixed user ID for demo purposes
+	user: null,
+	isAuthenticated: authService.isAuthenticated(),
+	userId: 1, // Legacy - will be replaced by user.id
 	selectedFlight: null,
 	selectedSeats: [],
 
 	// Timer state
 	timerStartTime: null,
-	timerDuration: 240, // 2 minutes in seconds
+	timerDuration: 240, // 4 minutes in seconds
 	isTimerActive: false,
 
 	isLoading: false,
 	currentStep: 'search',
+
+	// Auth Actions
+	setUser: (user) => set({ 
+		user, 
+		isAuthenticated: user !== null,
+		userId: user ? parseInt(user.id) : 1
+	}),
+
+	logout: () => {
+		authService.logout();
+		set({
+			user: null,
+			isAuthenticated: false,
+			selectedFlight: null,
+			selectedSeats: [],
+			currentStep: 'search',
+			isTimerActive: false,
+			timerStartTime: null
+		});
+	},
+
+	initAuth: () => {
+		const isAuth = authService.isAuthenticated();
+		set({ isAuthenticated: isAuth });
+	},
 
 	// Actions
 	setSelectedFlight: (flight) => {
