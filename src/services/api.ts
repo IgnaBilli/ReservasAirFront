@@ -6,6 +6,7 @@ const AUTH_API_URL = 'https://grupo5-usuarios.vercel.app/api'
 
 // Token management
 const TOKEN_KEY = 'auth_token';
+const USER_KEY = 'auth_user';
 
 export const tokenManager = {
   getToken: (): string | null => {
@@ -16,6 +17,20 @@ export const tokenManager = {
   },
   removeToken: (): void => {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+  },
+  getUser: () => {
+    const userStr = localStorage.getItem(USER_KEY);
+    if (!userStr) return null;
+    try {
+      return JSON.parse(userStr);
+    } catch (e) {
+      console.error('Error parsing user data:', e);
+      return null;
+    }
+  },
+  setUser: (user: any): void => {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
   }
 };
 
@@ -111,6 +126,14 @@ export const authService = {
 
   isAuthenticated: (): boolean => {
     return tokenManager.getToken() !== null;
+  },
+
+  getUser: () => {
+    return tokenManager.getUser();
+  },
+
+  saveUser: (user: any) => {
+    tokenManager.setUser(user);
   }
 };
 

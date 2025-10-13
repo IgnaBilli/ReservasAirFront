@@ -18,10 +18,11 @@ export const useLogin = () => {
         const response = await authService.login({ email, password });
 
         if (response && response.success && response.data) {
-          // Save token
+          // Save token and user data to localStorage
           tokenManager.setToken(response.data.token);
+          tokenManager.setUser(response.data.user);
 
-          // Update store with user data
+          // Update store with user data (will also persist to localStorage via setUser)
           setUser(response.data.user);
 
           return true;

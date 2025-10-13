@@ -62,11 +62,17 @@ export const useAppStore = create<AppState>((set, get) => ({
 	currentStep: 'search',
 
 	// Auth Actions
-	setUser: (user) => set({ 
-		user, 
-		isAuthenticated: user !== null,
-		userId: user ? parseInt(user.id) : 1
-	}),
+	setUser: (user) => {
+		// Persist user to localStorage when setting
+		if (user) {
+			authService.saveUser(user);
+		}
+		set({ 
+			user, 
+			isAuthenticated: user !== null,
+			userId: user ? parseInt(user.id) : 1
+		});
+	},
 
 	logout: () => {
 		authService.logout();
@@ -83,7 +89,12 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 	initAuth: () => {
 		const isAuth = authService.isAuthenticated();
-		set({ isAuthenticated: isAuth });
+		const user = authService.getUser();
+		set({ 
+			isAuthenticated: isAuth,
+			user: user,
+			userId: user ? parseInt(user.id) : 1
+		});
 	},
 
 	// Actions
