@@ -53,7 +53,7 @@ const FlightSearchPage = () => {
 							</p>
 						</Card>
 					) : (
-						flights.slice(0, 6).map((flight) => {
+						flights.slice(0, 10).map((flight) => {
 							const isFull = isFlightFull(flight);
 							return (
 								<Card key={flight.id} className={`transition-all ${isFull ? 'opacity-60' : 'hover:shadow-md'}`}>
