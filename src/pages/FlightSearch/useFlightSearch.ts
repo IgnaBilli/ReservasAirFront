@@ -17,8 +17,12 @@ const generateFlightNumber = (aircraft: string, index: number): string => {
 };
 
 // Transform API response to match our Flight interface
+// The new API returns: { externalUserId, flights: { success, message, externalUserId, flights: [...], flightCount } }
 const transformFlightData = (apiData: any): Flight[] => {
-	return apiData.flights.map((flight: any, index: number) => ({
+	// Access the nested flights array
+	const flightsArray = apiData?.flights?.flights || [];
+	
+	return flightsArray.map((flight: any, index: number) => ({
 		id: flight.externalFlightId,
 		flightNumber: generateFlightNumber(flight.aircraft, index),
 		origin: {
@@ -43,7 +47,8 @@ const transformFlightData = (apiData: any): Flight[] => {
 
 export const useFlightSearch = () => {
 	const navigate = useNavigate();
-	const { setSelectedFlight } = useAppStore();
+	const { setSelectedFlight, user } = useAppStore();
+	const userId = user?.id;
 
 	// Fetch flights from API
 	const {
@@ -52,10 +57,14 @@ export const useFlightSearch = () => {
 		error,
 		refetch
 	} = useQuery({
-		queryKey: ['flights'],
-		queryFn: flightsService.getFlights,
+		queryKey: ['flights', userId],
+		queryFn: () => {
+			if (!userId) throw new Error('User ID is required');
+			return flightsService.getFlights(userId);
+		},
 		select: transformFlightData,
 		staleTime: 1000 * 60 * 5, // 5 minutes
+		enabled: !!userId, // Only run query if userId exists
 	});
 
 	const handleSelectFlight = (flight: Flight) => {

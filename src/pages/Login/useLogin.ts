@@ -24,7 +24,9 @@ export const useLogin = () => {
 
           // Update store with user data (will also persist to localStorage via setUser)
           setUser(response.data.user);
-
+          //Muestra toda la info del usuario
+          console.log(response.data.user);
+          console.log('User ID:', response.data.user.id);
           return true;
         }
 

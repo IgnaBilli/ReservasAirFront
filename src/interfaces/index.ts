@@ -26,6 +26,7 @@ export interface Flight {
     time: string;
   };
   freeSeats?: number;
+  occupiedSeats?: number;
   aircraft: AircraftType;
   aircraftModel: string;
   date: string;

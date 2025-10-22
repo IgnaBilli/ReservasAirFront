@@ -10,7 +10,8 @@ import { toast } from 'react-toastify';
 export const useMyReservations = () => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const { userId } = useAppStore();
+	const { user } = useAppStore();
+	const userId = user?.id;
 	const [cancellingId, setCancellingId] = useState<number | null>(null);
 
 	// Fetch user reservations
@@ -20,14 +21,19 @@ export const useMyReservations = () => {
 		error,
 	} = useQuery({
 		queryKey: ['reservations', userId],
-		queryFn: () => reservationsService.getUserReservations(userId),
+		queryFn: () => {
+			if (!userId) throw new Error('User ID is required');
+			return reservationsService.getUserReservations(userId);
+		},
 		staleTime: 1000 * 60 * 5, // 5 minutes - longer cache time
 		refetchOnWindowFocus: false, // Don't refetch on window focus
+		enabled: !!userId, // Only run query if userId exists
 	});
 
 	// Mutation for cancelling reservation
 	const cancelReservationMutation = useMutation({
 		mutationFn: async (reservationId: number) => {
+			if (!userId) throw new Error('User ID is required');
 			setCancellingId(reservationId);
 
 			// Step 1: Cancel reservation

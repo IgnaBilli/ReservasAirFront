@@ -12,7 +12,7 @@ export const useConfirmation = () => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const {
-		userId,
+		user,
 		selectedFlight,
 		selectedSeats,
 		setCurrentStep,
@@ -37,11 +37,12 @@ export const useConfirmation = () => {
 	const createReservationMutation = useMutation({
 		mutationFn: async () => {
 			if (!selectedFlight) throw new Error('No flight selected');
+			if (!user?.id) throw new Error('User not authenticated');
 
 			// Step 1: Create reservation
 			const reservationResponse = await reservationsService.createReservation(
 				selectedFlight.id,
-				userId,
+				user.id,
 				selectedSeats
 			) as unknown as { reservationId: number }; // Type as any to avoid TS error
 
@@ -51,7 +52,7 @@ export const useConfirmation = () => {
 				Math.floor(Date.now() / 1000); // Fallback to timestamp
 
 			// Step 2: Confirm payment
-			await paymentService.confirmPayment(newReservationId, userId);
+			await paymentService.confirmPayment(newReservationId, user.id);
 
 			return reservationResponse;
 		},

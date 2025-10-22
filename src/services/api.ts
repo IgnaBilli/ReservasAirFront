@@ -139,8 +139,9 @@ export const authService = {
 
 // Flights Service
 export const flightsService = {
-  getFlights: async () => {
-    const response = await fetch(`${API_BASE_URL}/flights`, {
+  getFlights: async (userId: string) => {
+    console.log('Fetching flights for user:', userId);
+    const response = await fetch(`${API_BASE_URL}/flight-cart/${userId}`, {
       headers: getAuthHeaders(),
     });
     return handleResponse(response);
@@ -156,20 +157,21 @@ export const flightsService = {
 
 // Reservations Service
 export const reservationsService = {
-  getUserReservations: async (externalUserId: number) => {
+  getUserReservations: async (userId: string) => {
     // Note: The endpoint pattern suggests we might need to use a specific flightId
     // For now, we'll fetch all user reservations
     // You might need to adjust this based on your backend requirements
-    const response = await fetch(`${API_BASE_URL}/reservation/user/${externalUserId}`, {
+    console.log('Fetching reservations for user:', userId);
+    const response = await fetch(`${API_BASE_URL}/reservation/user/${userId}`, {
       headers: getAuthHeaders(),
     });
     // If the above doesn't work, you might need to fetch by specific flight IDs
     return handleResponse(response);
   },
 
-  createReservation: async (externalFlightId: number, externalUserId: number, seatIds: number[]) => {
+  createReservation: async (externalFlightId: number, userId: string, seatIds: number[]) => {
     const response = await fetch(
-      `${API_BASE_URL}/reservation/book/${externalFlightId}/${externalUserId}`,
+      `${API_BASE_URL}/reservation/book/${externalFlightId}/${userId}`,
       {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -192,27 +194,27 @@ export const reservationsService = {
 
 // Payment Service
 export const paymentService = {
-  confirmPayment: async (reservationId: number, externalUserId: number) => {
+  confirmPayment: async (reservationId: number, userId: string) => {
     const response = await fetch(`${API_BASE_URL}/payment/confirm`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({
         paymentStatus: "SUCCESS",
         reservationId,
-        externalUserId
+        externalUserId: userId
       })
     });
     return handleResponse(response);
   },
 
-  cancelPayment: async (reservationId: number, externalUserId: number) => {
+  cancelPayment: async (reservationId: number, userId: string) => {
     const response = await fetch(`${API_BASE_URL}/payment/cancel`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({
         paymentStatus: "REFUND",
         reservationId,
-        externalUserId
+        externalUserId: userId
       })
     });
     return handleResponse(response);

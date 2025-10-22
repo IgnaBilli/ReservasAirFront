@@ -72,6 +72,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 			isAuthenticated: user !== null,
 			userId: user ? parseInt(user.id) : 1
 		});
+		
 	},
 
 	logout: () => {
