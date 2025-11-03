@@ -194,6 +194,14 @@ export const reservationsService = {
 
 // Payment Service
 export const paymentService = {
+  checkPaymentStatus: async (reservationId: number) => {
+    const response = await fetch(`${API_BASE_URL}/payment/notify/${reservationId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+
   confirmPayment: async (reservationId: number, userId: string) => {
     const response = await fetch(`${API_BASE_URL}/payment/confirm`, {
       method: 'POST',

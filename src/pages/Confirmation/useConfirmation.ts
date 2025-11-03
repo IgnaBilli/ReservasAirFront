@@ -1,5 +1,5 @@
 // src/pages/Confirmation/useConfirmation.ts
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
@@ -24,6 +24,8 @@ export const useConfirmation = () => {
 
 	const [showTimeUpModal, setShowTimeUpModal] = useState(false);
 	const [showPaymentModal, setShowPaymentModal] = useState(false);
+	const [isWaitingPayment, setIsWaitingPayment] = useState(false);
+	const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
 	useEffect(() => {
 		if (!selectedFlight || selectedSeats.length === 0) {
@@ -33,46 +35,93 @@ export const useConfirmation = () => {
 		setCurrentStep('confirmation');
 	}, [selectedFlight, selectedSeats, navigate, setCurrentStep]);
 
+	// Cleanup polling on unmount
+	useEffect(() => {
+		return () => {
+			if (pollingIntervalRef.current) {
+				clearInterval(pollingIntervalRef.current);
+			}
+		};
+	}, []);
+
+	// Start polling for payment status
+	const startPaymentPolling = (resId: number) => {
+		console.log('🔄 Iniciando polling para reserva:', resId);
+		setIsWaitingPayment(true);
+		
+		// Clear any existing interval
+		if (pollingIntervalRef.current) {
+			clearInterval(pollingIntervalRef.current);
+		}
+
+		// Poll every 5 seconds
+		pollingIntervalRef.current = setInterval(async () => {
+			try {
+				const response = await paymentService.checkPaymentStatus(resId) as { success: boolean };
+				
+				if (response.success) {
+					console.log('✅ Pago confirmado!');
+					
+					// Stop polling
+					if (pollingIntervalRef.current) {
+						clearInterval(pollingIntervalRef.current);
+						pollingIntervalRef.current = null;
+					}
+
+					setIsWaitingPayment(false);
+
+					// Invalidate queries to refresh data
+					queryClient.invalidateQueries({ queryKey: ['reservations'] });
+					queryClient.invalidateQueries({ queryKey: ['seatAvailability'] });
+
+					setLoading(false);
+					setShowPaymentModal(false);
+					setCurrentStep('success');
+					stopTimer();
+					resetSelection();
+
+					toast.success("Pago confirmado con éxito", {
+						closeButton: false,
+						autoClose: 3000
+					});
+
+					navigate('/mis-reservas');
+				} else {
+					console.log('⏳ Pago aún pendiente...');
+				}
+			} catch (error) {
+				console.error('❌ Error al verificar estado del pago:', error);
+			}
+		}, 5000); // Poll every 5 seconds
+	};
+
 	// Mutation for creating reservation
 	const createReservationMutation = useMutation({
 		mutationFn: async () => {
 			if (!selectedFlight) throw new Error('No flight selected');
 			if (!user?.id) throw new Error('User not authenticated');
 
-			// Step 1: Create reservation
+			// Create reservation (without confirming payment)
 			const reservationResponse = await reservationsService.createReservation(
 				selectedFlight.id,
 				user.id,
 				selectedSeats
-			) as unknown as { reservationId: number }; // Type as any to avoid TS error
-
-			// Extract reservationId from response
-			// Assuming the response includes the reservation details or ID
-			const newReservationId = reservationResponse.reservationId ||
-				Math.floor(Date.now() / 1000); // Fallback to timestamp
-
-			// Step 2: Confirm payment
-			await paymentService.confirmPayment(newReservationId, user.id);
+			) as unknown as { reservationId: number };
 
 			return reservationResponse;
 		},
-		onSuccess: () => {
-			// Invalidate queries to refresh data
-			queryClient.invalidateQueries({ queryKey: ['reservations'] });
-			queryClient.invalidateQueries({ queryKey: ['seatAvailability'] });
-
+		onSuccess: (data) => {
+			const resId = data.reservationId;
+			
 			setLoading(false);
-			setShowPaymentModal(false);
-			setCurrentStep('success');
-			stopTimer();
-			resetSelection();
-
-			toast.success("Reserva efectuada con éxito", {
+			
+			toast.info("Reserva creada. Esperando confirmación de pago...", {
 				closeButton: false,
 				autoClose: 3000
 			});
 
-			navigate('/mis-reservas');
+			// Start polling for payment confirmation
+			startPaymentPolling(resId);
 		},
 		onError: (error) => {
 			setLoading(false);
@@ -141,6 +190,7 @@ export const useConfirmation = () => {
 		seatsWithPrices,
 		totalPrice,
 		isLoading,
+		isWaitingPayment,
 		showTimeUpModal,
 		showPaymentModal,
 		handleTimeUp,
