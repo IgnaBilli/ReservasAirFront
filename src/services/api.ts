@@ -202,6 +202,14 @@ export const paymentService = {
     return handleResponse(response);
   },
 
+  checkPaymentFailed: async (reservationId: number) => {
+    const response = await fetch(`${API_BASE_URL}/payment/notify/failed/${reservationId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+
   confirmPayment: async (reservationId: number, userId: string) => {
     const response = await fetch(`${API_BASE_URL}/payment/confirm`, {
       method: 'POST',
