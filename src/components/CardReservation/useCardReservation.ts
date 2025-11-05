@@ -20,7 +20,7 @@ export const useCardReservation = ({
 	// Calculate flight date from reservation date
 	const flightDate = new Date(reservation.flightData.flightDate);
 	const isFlightPast = flightDate < new Date();
-	const canRequestRefund = reservation.status === "PAID" && !isFlightPast;
+	const canRequestRefund = reservation.status === "PAID";
 	const canModifySeat = reservation.status !== "PAID" && reservation.status !== "CANCELLED";
 
 	const handleModifySeat = () => {
