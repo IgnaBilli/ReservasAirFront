@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
-import { reservationsService, paymentService } from '@/services/api';
+import { reservationsService } from '@/services/api';
 import { Reservation } from '@/interfaces';
 import { toast } from 'react-toastify';
 
@@ -36,11 +36,8 @@ export const useMyReservations = () => {
 			if (!userId) throw new Error('User ID is required');
 			setCancellingId(reservationId);
 
-			// Step 1: Cancel reservation
+			// Cancel reservation
 			await reservationsService.cancelReservation(reservationId);
-
-			// Step 2: Process refund
-			await paymentService.cancelPayment(reservationId, userId);
 
 			return reservationId;
 		},
@@ -84,12 +81,16 @@ export const useMyReservations = () => {
 			});
 
 			setCancellingId(null);
+			
+			// Refetch reservations to get updated data from server
+			queryClient.invalidateQueries({
+				queryKey: ['reservations', userId]
+			});
 		},
 		onSettled: () => {
-			// Always refetch after error or success but without forcing a full reload
-			queryClient.invalidateQueries({
-				queryKey: ['reservations', userId],
-				refetchType: 'none' // Don't force immediate refetch
+			// Refetch after operation completes
+			queryClient.refetchQueries({
+				queryKey: ['reservations', userId]
 			});
 		}
 	});
