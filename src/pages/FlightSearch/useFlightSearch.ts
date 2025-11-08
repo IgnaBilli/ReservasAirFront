@@ -41,7 +41,8 @@ const transformFlightData = (apiData: any): Flight[] => {
 		duration: flight.duration,
 		price: 450, // Base price - will be adjusted based on cabin class
 		freeSeats: flight.freeSeats,
-		occupiedSeats: flight.occupiedSeats
+		occupiedSeats: flight.occupiedSeats,
+		flightStatus: flight.flightStatus
 	}));
 };
 

@@ -5,6 +5,19 @@ import { Card } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { formatCurrency } from '@/utils';
 
+const formatFlightDate = (dateString: string): string => {
+	const date = new Date(dateString);
+	const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+	const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+	
+	const dayOfWeek = days[date.getDay()];
+	const day = date.getDate();
+	const month = months[date.getMonth()];
+	const year = date.getFullYear();
+	
+	return `${dayOfWeek}, ${day} ${month} ${year}`;
+};
+
 const FlightSearchPage = () => {
 	const {
 		flights,
@@ -55,6 +68,8 @@ const FlightSearchPage = () => {
 					) : (
 						flights.slice(0, 10).map((flight) => {
 							const isFull = isFlightFull(flight);
+							console.log(`Vuelo ${flight.flightNumber} - Status:`, flight.flightStatus);
+
 							return (
 								<Card key={flight.id} className={`transition-all ${isFull ? 'opacity-60' : 'hover:shadow-md'}`}>
 									<div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
@@ -67,14 +82,23 @@ const FlightSearchPage = () => {
 													</div>
 													<span className="font-bold text-lg text-gray-800">{flight.flightNumber}</span>
 												</div>
-												<span className="text-gray-600 w-32">{flight.aircraftModel}</span>
+												<span className="text-gray-600 ">{flight.aircraftModel}</span>
 												<span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-semibold">
 													{flight.aircraft}
+												</span>
+												<span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+													<span>📅</span>
+													<span>{formatFlightDate(flight.date)}</span>
 												</span>
 												{/* Indicador de vuelo completo */}
 												{isFull && (
 													<span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-semibold">
 														COMPLETO
+													</span>
+												)}
+												{flight.flightStatus === "DELAYED" && (
+													<span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-semibold">
+														DEMORADO
 													</span>
 												)}
 											</div>

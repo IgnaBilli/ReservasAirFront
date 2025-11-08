@@ -57,7 +57,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 	// Timer state
 	timerStartTime: null,
-	timerDuration: 120, // 2 minutes in seconds
+	timerDuration: 900, // 15 minutes in seconds
 	isTimerActive: false,
 	isTimerPaused: false,
 

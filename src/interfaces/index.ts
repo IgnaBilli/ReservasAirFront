@@ -32,6 +32,7 @@ export interface Flight {
   date: string;
   duration: string;
   price: number;
+  flightStatus?: "ON_TIME" | "DELAYED" | "CANCELLED";
 }
 
 export interface FlightSeatAvailability {
