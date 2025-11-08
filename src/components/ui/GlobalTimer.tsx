@@ -7,12 +7,17 @@ interface GlobalTimerProps {
 }
 
 export const GlobalTimer = ({ onTimeUp, className = '' }: GlobalTimerProps) => {
-	const { isTimerActive, getTimeLeft } = useAppStore();
+	const { isTimerActive, isTimerPaused, getTimeLeft } = useAppStore();
 	const [timeLeft, setTimeLeft] = useState(0);
 
 	useEffect(() => {
 		if (!isTimerActive) {
 			setTimeLeft(0);
+			return;
+		}
+
+		// Si está pausado, no actualizamos el tiempo
+		if (isTimerPaused) {
 			return;
 		}
 
@@ -32,9 +37,25 @@ export const GlobalTimer = ({ onTimeUp, className = '' }: GlobalTimerProps) => {
 		const interval = setInterval(updateTimer, 1000);
 
 		return () => clearInterval(interval);
-	}, [isTimerActive, getTimeLeft, onTimeUp]);
+	}, [isTimerActive, isTimerPaused, getTimeLeft, onTimeUp]);
 
-	if (!isTimerActive || timeLeft <= 0) {
+	if (!isTimerActive) {
+		return null;
+	}
+
+	// Si está pausado, mostramos "Time Out"
+	if (isTimerPaused) {
+		return (
+			<div className={`flex items-center gap-2 ${className}`}>
+				<span className="text-sm text-gray-600">Estado:</span>
+				<span className="font-mono font-bold text-lg px-2 py-1 rounded text-gray-600 bg-gray-200">
+					Time Out
+				</span>
+			</div>
+		);
+	}
+
+	if (timeLeft <= 0) {
 		return null;
 	}
 

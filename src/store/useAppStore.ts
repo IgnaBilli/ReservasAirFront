@@ -21,6 +21,7 @@ interface AppState {
 	timerStartTime: number | null;
 	timerDuration: number; // in seconds (2 minutes = 120 seconds)
 	isTimerActive: boolean;
+	isTimerPaused: boolean;
 
 	// UI State
 	isLoading: boolean;
@@ -40,6 +41,7 @@ interface AppState {
 	// Timer actions
 	startTimer: () => void;
 	stopTimer: () => void;
+	pauseTimer: () => void;
 	getTimeLeft: () => number;
 
 	resetSelection: () => void;
@@ -57,6 +59,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 	timerStartTime: null,
 	timerDuration: 120, // 2 minutes in seconds
 	isTimerActive: false,
+	isTimerPaused: false,
 
 	isLoading: false,
 	currentStep: 'search',
@@ -84,7 +87,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 			selectedSeats: [],
 			currentStep: 'search',
 			isTimerActive: false,
-			timerStartTime: null
+			timerStartTime: null,
+			isTimerPaused: false
 		});
 	},
 
@@ -117,12 +121,18 @@ export const useAppStore = create<AppState>((set, get) => ({
 	// Timer actions
 	startTimer: () => set({
 		timerStartTime: Date.now(),
-		isTimerActive: true
+		isTimerActive: true,
+		isTimerPaused: false
 	}),
 
 	stopTimer: () => set({
 		isTimerActive: false,
-		timerStartTime: null
+		timerStartTime: null,
+		isTimerPaused: false
+	}),
+
+	pauseTimer: () => set({
+		isTimerPaused: true
 	}),
 
 	getTimeLeft: () => {
@@ -140,6 +150,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 		currentStep: 'search',
 		// Stop timer when resetting
 		isTimerActive: false,
-		timerStartTime: null
+		timerStartTime: null,
+		isTimerPaused: false
 	})
 }));

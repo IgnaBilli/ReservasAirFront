@@ -19,7 +19,8 @@ export const useConfirmation = () => {
 		resetSelection,
 		isLoading,
 		setLoading,
-		stopTimer
+		stopTimer,
+		pauseTimer
 	} = useAppStore();
 
 	const [showTimeUpModal, setShowTimeUpModal] = useState(false);
@@ -188,6 +189,8 @@ export const useConfirmation = () => {
 
 	const handleConfirmPayment = async () => {
 		setLoading(true);
+		// Pausar el timer cuando se confirma el pago
+		pauseTimer();
 		createReservationMutation.mutate();
 	};
 
