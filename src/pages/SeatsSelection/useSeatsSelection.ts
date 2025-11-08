@@ -23,12 +23,14 @@ export const useSeatsSelection = () => {
 	const {
 		data: seatAvailability,
 		isLoading,
-		error
+		error,
+		refetch
 	} = useQuery<FlightSeatAvailability>({
 		queryKey: ['seatAvailability', selectedFlight?.id],
 		queryFn: () => flightsService.getSeatsByFlightId(selectedFlight!.id),
 		enabled: !!selectedFlight?.id,
-		staleTime: 1000 * 30, // 30 seconds - seats can change quickly
+		staleTime: 0, // Always consider data stale to force fresh fetch
+		refetchOnMount: 'always', // Always refetch when component mounts
 		refetchInterval: 1000 * 30, // Refetch every 30 seconds to get updates
 	});
 
@@ -38,7 +40,9 @@ export const useSeatsSelection = () => {
 			return;
 		}
 		setCurrentStep('seats');
-	}, [selectedFlight, navigate, setCurrentStep]);
+		// Force refetch when component mounts with a selected flight
+		refetch();
+	}, [selectedFlight, navigate, setCurrentStep, refetch]);
 
 	useEffect(() => {
 		if (error) {

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/FlightSearch/useFlightSearch.ts
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
 import { flightsService } from '@/services/api';
 import { Flight, AircraftType } from '@/interfaces';
@@ -48,6 +48,7 @@ const transformFlightData = (apiData: any): Flight[] => {
 
 export const useFlightSearch = () => {
 	const navigate = useNavigate();
+	const queryClient = useQueryClient();
 	const { setSelectedFlight, user } = useAppStore();
 	const userId = user?.id;
 
@@ -73,6 +74,11 @@ export const useFlightSearch = () => {
 		if (flight.freeSeats === 0) {
 			return;
 		}
+
+		// Invalidate seat availability cache to force fresh data
+		queryClient.invalidateQueries({
+			queryKey: ['seatAvailability', flight.id]
+		});
 
 		setSelectedFlight(flight);
 		navigate(`/seleccionar-asientos/${flight.id}`);
