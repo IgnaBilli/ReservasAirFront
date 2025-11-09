@@ -152,6 +152,13 @@ export const flightsService = {
       headers: getAuthHeaders(),
     });
     return handleResponse<FlightSeatAvailability>(response);
+  },
+
+  checkFlightCancelled: async (externalFlightId: number): Promise<{ cancelled: boolean }> => {
+    const response = await fetch(`${API_BASE_URL}/flights/${externalFlightId}/isCancelled`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<{ cancelled: boolean }>(response);
   }
 };
 

@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
-import { reservationsService, paymentService } from '@/services/api';
+import { reservationsService, paymentService, flightsService } from '@/services/api';
 import { getAircraftWithPrices } from '@/mocks/aircrafts';
 import { seatNumToVisual } from '@/utils';
 import { toast } from 'react-toastify';
@@ -199,10 +199,45 @@ export const useConfirmation = () => {
 	};
 
 	const handleConfirmPayment = async () => {
+		if (!localFlight) return;
+
 		setLoading(true);
-		// Pausar el timer cuando se confirma el pago
-		pauseTimer();
-		createReservationMutation.mutate();
+
+		try {
+			// Verificar si el vuelo está cancelado antes de proceder
+			const { cancelled } = await flightsService.checkFlightCancelled(localFlight.id);
+			
+			if (cancelled) {
+				setLoading(false);
+				setShowPaymentModal(false);
+				
+				toast.error("El vuelo ha sido cancelado. Serás redirigido a la búsqueda de vuelos.", {
+					closeButton: false,
+					autoClose: 5000
+				});
+
+				// Invalidar el cache de vuelos para obtener datos actualizados
+				queryClient.invalidateQueries({ queryKey: ['flights'] });
+
+				// Limpiar selección y volver a la página de vuelos
+				resetSelection();
+				stopTimer();
+				navigate('/');
+				return;
+			}
+
+			// Si el vuelo no está cancelado, continuar con la reserva
+			// Pausar el timer cuando se confirma el pago
+			pauseTimer();
+			createReservationMutation.mutate();
+		} catch (error) {
+			setLoading(false);
+			console.error('Error al verificar estado del vuelo:', error);
+			toast.error("Error al verificar el estado del vuelo. Por favor intenta nuevamente.", {
+				closeButton: false,
+				autoClose: 3000
+			});
+		}
 	};
 
 	// Calculate seats with prices
