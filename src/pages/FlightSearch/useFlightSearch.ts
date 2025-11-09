@@ -39,7 +39,8 @@ const transformFlightData = (apiData: any): Flight[] => {
 		aircraftModel: flight.aircraftModel,
 		date: new Date(flight.flightDate).toISOString().split('T')[0],
 		duration: flight.duration,
-		price: 450, // Base price - will be adjusted based on cabin class
+		price: parseFloat(flight.price) || 0, // Base price from API (economy class price)
+		currency: flight.currency || 'ARS', // Currency from API
 		freeSeats: flight.freeSeats,
 		occupiedSeats: flight.occupiedSeats,
 		flightStatus: flight.flightStatus

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
 import { reservationsService, paymentService } from '@/services/api';
-import { AIRCRAFTS } from '@/mocks/aircrafts';
+import { getAircraftWithPrices } from '@/mocks/aircrafts';
 import { seatNumToVisual } from '@/utils';
 import { toast } from 'react-toastify';
 
@@ -198,7 +198,11 @@ export const useConfirmation = () => {
 	const getSeatsWithPrices = () => {
 		if (!selectedFlight) return [];
 
-		const aircraftConfig = AIRCRAFTS[selectedFlight.aircraft];
+		// Use flight's base price to calculate cabin prices
+		const aircraftConfig = getAircraftWithPrices(
+			selectedFlight.aircraft,
+			selectedFlight.price
+		);
 
 		return selectedSeats.map(seatId => {
 			const { row, letter } = seatNumToVisual(seatId, selectedFlight.aircraft);

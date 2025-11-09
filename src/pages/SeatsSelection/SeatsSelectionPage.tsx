@@ -144,6 +144,7 @@ const SeatsSelectionPage = () => {
             <div className="bg-white rounded-xl shadow-sm h-full">
               <SeatMap
                 aircraft={selectedFlight.aircraft}
+                flightBasePrice={selectedFlight.price}
                 occupied={occupiedSeats}
                 initialSelected={selectedSeats}
                 onChange={setSelectedSeats}

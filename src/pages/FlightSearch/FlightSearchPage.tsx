@@ -138,8 +138,13 @@ const FlightSearchPage = () => {
 										<div className="lg:col-span-4 flex flex-col text-center lg:text-right">
 											<div className="mb-4">
 												<div className="text-xs text-gray-600 mb-1">Desde</div>
-												<div className={`text-3xl font-bold ${isFull ? 'text-gray-400' : 'text-[#74B5CD]'}`}>
-													{formatCurrency(flight.price)}
+												<div className="flex items-start justify-center lg:justify-end gap-1">
+													<span className={`text-xs font-medium mt-1 ${isFull ? 'text-gray-400' : 'text-gray-500'}`}>
+														{flight.currency || 'ARS'}
+													</span>
+													<div className={`text-3xl font-bold ${isFull ? 'text-gray-400' : 'text-[#74B5CD]'}`}>
+														{formatCurrency(flight.price)}
+													</div>
 												</div>
 												<div className="text-xs text-gray-500">Por persona</div>
 											</div>

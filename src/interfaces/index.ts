@@ -32,6 +32,7 @@ export interface Flight {
   date: string;
   duration: string;
   price: number;
+  currency?: string; // Currency from API (e.g., "ARS", "USD")
   flightStatus?: "ON_TIME" | "DELAYED" | "CANCELLED";
 }
 
