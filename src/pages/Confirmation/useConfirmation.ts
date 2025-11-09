@@ -27,14 +27,23 @@ export const useConfirmation = () => {
 	const [showPaymentModal, setShowPaymentModal] = useState(false);
 	const [isWaitingPayment, setIsWaitingPayment] = useState(false);
 	const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+	
+	// Guardar datos localmente para que no se pierdan después del reset
+	const [localFlight, setLocalFlight] = useState(selectedFlight);
+	const [localSeats, setLocalSeats] = useState(selectedSeats);
 
 	useEffect(() => {
 		if (!selectedFlight || selectedSeats.length === 0) {
-			navigate('/mis-reservas');
+			// Si ya tenemos datos locales, no redirigir (estamos en proceso de pago)
+			if (!localFlight || localSeats.length === 0) {
+				navigate('/mis-reservas');
+			}
 			return;
 		}
+		setLocalFlight(selectedFlight);
+		setLocalSeats(selectedSeats);
 		setCurrentStep('confirmation');
-	}, [selectedFlight, selectedSeats, navigate, setCurrentStep]);
+	}, [selectedFlight, selectedSeats, navigate, setCurrentStep, localFlight, localSeats]);
 
 	// Cleanup polling on unmount
 	useEffect(() => {
@@ -90,7 +99,6 @@ export const useConfirmation = () => {
 					setShowPaymentModal(false);
 					setCurrentStep('success');
 					stopTimer();
-					resetSelection();
 
 					toast.success("Pago confirmado con éxito", {
 						closeButton: false,
@@ -134,15 +142,18 @@ export const useConfirmation = () => {
 	// Mutation for creating reservation
 	const createReservationMutation = useMutation({
 		mutationFn: async () => {
-			if (!selectedFlight) throw new Error('No flight selected');
+			if (!localFlight) throw new Error('No flight selected');
 			if (!user?.id) throw new Error('User not authenticated');
 
 			// Create reservation (without confirming payment)
 			const reservationResponse = await reservationsService.createReservation(
-				selectedFlight.id,
+				localFlight.id,
 				user.id,
-				selectedSeats
+				localSeats
 			) as unknown as { reservationId: number };
+
+			// Reset selection immediately after the request is sent (before response)
+			resetSelection();
 
 			return reservationResponse;
 		},
@@ -180,7 +191,7 @@ export const useConfirmation = () => {
 	};
 
 	const handleModifySeats = () => {
-		navigate(`/seleccionar-asientos/${selectedFlight!.id}`);
+		navigate(`/seleccionar-asientos/${localFlight!.id}`);
 	};
 
 	const handleProceedToPayment = () => {
@@ -196,16 +207,16 @@ export const useConfirmation = () => {
 
 	// Calculate seats with prices
 	const getSeatsWithPrices = () => {
-		if (!selectedFlight) return [];
+		if (!localFlight) return [];
 
 		// Use flight's base price to calculate cabin prices
 		const aircraftConfig = getAircraftWithPrices(
-			selectedFlight.aircraft,
-			selectedFlight.price
+			localFlight.aircraft,
+			localFlight.price
 		);
 
-		return selectedSeats.map(seatId => {
-			const { row, letter } = seatNumToVisual(seatId, selectedFlight.aircraft);
+		return localSeats.map(seatId => {
+			const { row, letter } = seatNumToVisual(seatId, localFlight.aircraft);
 			const cabin = aircraftConfig.cabins.find(c => row >= c.fromRow && row <= c.toRow);
 			return {
 				seatId,
@@ -227,8 +238,8 @@ export const useConfirmation = () => {
 	};
 
 	return {
-		selectedFlight,
-		selectedSeats,
+		selectedFlight: localFlight,
+		selectedSeats: localSeats,
 		seatsWithPrices,
 		totalPrice,
 		isLoading,
