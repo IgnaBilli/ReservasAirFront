@@ -11,6 +11,43 @@ jest.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
+// Mock api services
+jest.mock("@/services/api", () => ({
+  authService: {
+    checkUserExists: jest.fn(),
+    login: jest.fn(),
+    logout: jest.fn(),
+    isAuthenticated: jest.fn(),
+    getUser: jest.fn(),
+    saveUser: jest.fn(),
+  },
+  tokenManager: {
+    getToken: jest.fn(),
+    setToken: jest.fn(),
+    removeToken: jest.fn(),
+    getUser: jest.fn(),
+    setUser: jest.fn(),
+  },
+  flightsService: {},
+  reservationsService: {},
+  paymentService: {},
+}));
+
+// Mock useAppStore
+jest.mock("@/store/useAppStore", () => ({
+  useAppStore: jest.fn(() => ({
+    user: { id: "123" },
+  })),
+}));
+
+// Mock react-toastify
+jest.mock("react-toastify", () => ({
+  toast: {
+    error: jest.fn(),
+    success: jest.fn(),
+  },
+}));
+
 function TestWrapper({ children }: { children: ReactNode }) {
   return <BrowserRouter>{children}</BrowserRouter>;
 }
@@ -81,6 +118,9 @@ describe("useCardReservation", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Mock authService.checkUserExists to return a successful response by default
+    const { authService } = require("@/services/api");
+    authService.checkUserExists.mockResolvedValue({ exists: true });
   });
 
   test("deberia iniciarse con los valores por default", () => {
@@ -261,7 +301,7 @@ describe("useCardReservation", () => {
       expect(result.current.showCancelModal).toBe(true);
     });
 
-    it("should close modal and call onCancelReservation when confirming refund", () => {
+    it("should close modal and call onCancelReservation when confirming refund", async () => {
       const { result } = renderHook(
         () =>
           useCardReservation({
@@ -278,8 +318,8 @@ describe("useCardReservation", () => {
       });
 
       // Then confirm the refund
-      act(() => {
-        result.current.handleConfirmRefund();
+      await act(async () => {
+        await result.current.handleConfirmRefund();
       });
 
       expect(result.current.showCancelModal).toBe(false);
