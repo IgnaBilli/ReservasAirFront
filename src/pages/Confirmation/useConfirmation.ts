@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
-import { reservationsService, paymentService, flightsService } from '@/services/api';
+import { reservationsService, paymentService, flightsService, authService } from '@/services/api';
 import { getAircraftWithPrices } from '@/mocks/aircrafts';
 import { seatNumToVisual } from '@/utils';
 import { toast } from 'react-toastify';
@@ -204,7 +204,42 @@ export const useConfirmation = () => {
 		setLoading(true);
 
 		try {
-			// Verificar si el vuelo está cancelado antes de proceder
+			// 1. Primero verificar si el usuario existe
+			if (!user?.id) {
+				toast.error("Error: Usuario no autenticado.", {
+					closeButton: false,
+					autoClose: 3000
+				});
+				setLoading(false);
+				setShowPaymentModal(false);
+				return;
+			}
+
+			const userCheckResult = await authService.checkUserExists(user.id);
+			
+			if (!userCheckResult.exists) {
+				// Usuario no existe - cerrar sesión
+				setLoading(false);
+				setShowPaymentModal(false);
+				
+				toast.error("Tu usuario ya no existe en el sistema. Serás redirigido al login.", {
+					closeButton: false,
+					autoClose: 5000
+				});
+
+				// Limpiar todo y cerrar sesión
+				resetSelection();
+				stopTimer();
+				
+				// Esperar un momento para que el usuario vea el mensaje
+				setTimeout(() => {
+					useAppStore.getState().logout();
+					navigate('/login');
+				}, 2000);
+				return;
+			}
+
+			// 2. Verificar si el vuelo está cancelado antes de proceder
 			const { cancelled } = await flightsService.checkFlightCancelled(localFlight.id);
 			
 			if (cancelled) {
@@ -226,14 +261,14 @@ export const useConfirmation = () => {
 				return;
 			}
 
-			// Si el vuelo no está cancelado, continuar con la reserva
+			// Si el vuelo no está cancelado y el usuario existe, continuar con la reserva
 			// Pausar el timer cuando se confirma el pago
 			pauseTimer();
 			createReservationMutation.mutate();
 		} catch (error) {
 			setLoading(false);
-			console.error('Error al verificar estado del vuelo:', error);
-			toast.error("Error al verificar el estado del vuelo. Por favor intenta nuevamente.", {
+			console.error('Error al verificar estado del vuelo o usuario:', error);
+			toast.error("Error al verificar los datos. Por favor intenta nuevamente.", {
 				closeButton: false,
 				autoClose: 3000
 			});

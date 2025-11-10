@@ -134,6 +134,30 @@ export const authService = {
 
   saveUser: (user: any) => {
     tokenManager.setUser(user);
+  },
+
+  checkUserExists: async (userId: string): Promise<{ exists: boolean; user?: any }> => {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    // 404 means user doesn't exist
+    if (response.status === 404) {
+      return { exists: false };
+    }
+
+    // 200 means user exists
+    if (response.ok) {
+      const data = await response.json();
+      return { exists: true, user: data };
+    }
+
+    // Other errors
+    throw new Error(`Error checking user: ${response.status}`);
   }
 };
 

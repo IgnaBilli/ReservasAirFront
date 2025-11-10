@@ -27,6 +27,24 @@ export const useLogin = () => {
           //Muestra toda la info del usuario
           console.log(response.data.user);
           console.log('User ID:', response.data.user.id);
+
+          // Send user ID to reservations backend
+          try {
+            await fetch('https://reservasairback-develop.up.railway.app/users', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                id: response.data.user.id
+              })
+            });
+            console.log('User ID sent to reservations backend');
+          } catch (backendErr) {
+            console.error('Error sending user ID to backend:', backendErr);
+            // No bloqueamos el login si falla esta llamada
+          }
+
           return true;
         }
 
