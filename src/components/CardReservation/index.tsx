@@ -19,6 +19,7 @@ const CardReservation = ({ reservation, onCancelReservation, isCancelling }: Car
     canRequestRefund,
     showCancelModal,
     isProcessing,
+    isVerifying,
     seatNumbers,
     seatCount,
     handleRequestRefund,
@@ -145,25 +146,35 @@ const CardReservation = ({ reservation, onCancelReservation, isCancelling }: Car
       <Modal
         size="sm"
         isOpen={showCancelModal}
-        onClose={() => setShowCancelModal(false)}
+        onClose={() => !isVerifying && setShowCancelModal(false)}
         title="Solicitar Reembolso"
         hideCloseButton
       >
         <div className="text-center">
-          <p className="text-gray-600 mb-6">
-            ¿Estás seguro que deseas cancelar la reserva #{String(reservation.reservationId).padStart(8, '0')} y solicitar el reembolso? <br /> Esta acción no se puede deshacer.
-          </p>
-          <div className="flex gap-3 justify-center">
-            <Button variant="secondary" onClick={() => setShowCancelModal(false)}>
-              Cancelar
-            </Button>
-            <Button
-              variant="danger"
-              onClick={handleConfirmRefund}
-            >
-              Confirmar Reembolso
-            </Button>
-          </div>
+          {isVerifying ? (
+            <>
+              <LoadingSpinner size="lg" className="mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2 text-gray-800">Verificando Cuenta</h3>
+              <p className="text-gray-600">Por favor espera mientras verificamos tu cuenta...</p>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-600 mb-6">
+                ¿Estás seguro que deseas cancelar la reserva #{String(reservation.reservationId).padStart(8, '0')} y solicitar el reembolso? <br /> Esta acción no se puede deshacer.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Button variant="secondary" onClick={() => setShowCancelModal(false)}>
+                  Cancelar
+                </Button>
+                <Button
+                  variant="danger"
+                  onClick={handleConfirmRefund}
+                >
+                  Confirmar Reembolso
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </Modal>
     </>
