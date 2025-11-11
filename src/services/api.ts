@@ -211,7 +211,34 @@ export const reservationsService = {
         })
       }
     );
-    return handleResponse(response);
+    
+    // Check if response is ok first
+    if (!response.ok) {
+      // Try to get error details from response body
+      let errorText: string | null = null;
+      try {
+        const errorData = await response.json();
+        if (errorData.message) {
+          throw new Error(errorData.message);
+        }
+      } catch (e) {
+        // If JSON parse fails, try getting text
+        try {
+          errorText = await response.text();
+        } catch {}
+      }
+      throw new Error(errorText || `HTTP error! status: ${response.status}`);
+    }
+
+    // Parse the JSON response
+    const data = await response.json();
+    
+    // Check if the response indicates seats are already taken
+    if (data.success === false && data.message && data.message.includes('already taken')) {
+      throw new Error('SEATS_ALREADY_TAKEN');
+    }
+    
+    return data;
   },
 
   cancelReservation: async (reservationId: number) => {

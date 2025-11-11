@@ -172,11 +172,33 @@ export const useConfirmation = () => {
 		},
 		onError: (error) => {
 			setLoading(false);
+			setShowPaymentModal(false);
 			console.error('Error creating reservation:', error);
-			toast.error("Error al procesar la reserva. Por favor intente nuevamente.", {
-				closeButton: false,
-				autoClose: 3000
-			});
+			
+			// Check if the error is due to seats already taken
+			if (error instanceof Error && error.message === 'SEATS_ALREADY_TAKEN') {
+				toast.error("Los asientos seleccionados ya han sido reservados. Serás redirigido a la búsqueda de vuelos.", {
+					closeButton: false,
+					autoClose: 5000
+				});
+				
+				// Invalidate queries to get fresh data
+				queryClient.invalidateQueries({ queryKey: ['seatAvailability'] });
+				queryClient.invalidateQueries({ queryKey: ['flights'] });
+				
+				// Reset selection and navigate back to flights page
+				resetSelection();
+				stopTimer();
+				
+				setTimeout(() => {
+					navigate('/');
+				}, 2000);
+			} else {
+				toast.error("Error al procesar la reserva. Por favor intente nuevamente.", {
+					closeButton: false,
+					autoClose: 3000
+				});
+			}
 		}
 	});
 
