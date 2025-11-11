@@ -6,14 +6,16 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { formatCurrency } from '@/utils';
 
 const formatFlightDate = (dateString: string): string => {
+	// Parse using UTC to avoid timezone offset issues
 	const date = new Date(dateString);
 	const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 	const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 	
-	const dayOfWeek = days[date.getDay()];
-	const day = date.getDate();
-	const month = months[date.getMonth()];
-	const year = date.getFullYear();
+	// Use UTC methods to get the correct date components
+	const dayOfWeek = days[date.getUTCDay()];
+	const day = date.getUTCDate();
+	const month = months[date.getUTCMonth()];
+	const year = date.getUTCFullYear();
 	
 	return `${dayOfWeek}, ${day} ${month} ${year}`;
 };
