@@ -17,6 +17,7 @@ interface CardReservationProps {
 const CardReservation = ({ reservation, onCancelReservation, isCancelling }: CardReservationProps) => {
   const {
     canRequestRefund,
+    isFlightPast,
     showCancelModal,
     isProcessing,
     isVerifying,
@@ -126,6 +127,13 @@ const CardReservation = ({ reservation, onCancelReservation, isCancelling }: Car
                     "Solicitar Reembolso →"
                   )}
                 </Button>
+              )}
+              
+              {/* Message when flight has already passed */}
+              {reservation.status === "PAID" && isFlightPast && (
+                <div className="text-xs text-gray-500 italic text-center p-2 bg-gray-50 rounded">
+                  No se puede solicitar reembolso para vuelos que ya han pasado
+                </div>
               )}
             </div>
           </div>

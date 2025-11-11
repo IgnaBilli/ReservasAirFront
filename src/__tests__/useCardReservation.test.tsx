@@ -211,6 +211,21 @@ describe("useCardReservation", () => {
 
       expect(result.current.canRequestRefund).toBe(false);
     });
+
+    test("No deberia dejar hacer reembolsos para vuelos que ya pasaron", () => {
+      const { result } = renderHook(
+        () =>
+          useCardReservation({
+            reservation: mockPastReservation,
+            onCancelReservation: mockOnCancelReservation,
+            isCancelling: false,
+          }),
+        { wrapper: TestWrapper }
+      );
+
+      expect(result.current.canRequestRefund).toBe(false);
+      expect(result.current.isFlightPast).toBe(true);
+    });
   });
 
   describe("canModifySeat logic", () => {
