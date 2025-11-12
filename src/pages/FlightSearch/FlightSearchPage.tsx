@@ -84,7 +84,6 @@ const FlightSearchPage = () => {
 													</div>
 													<span className="font-bold text-lg text-gray-800">{flight.flightNumber}</span>
 												</div>
-												<span className="text-gray-600 ">{flight.aircraftModel}</span>
 												<span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-semibold">
 													{flight.aircraft}
 												</span>
