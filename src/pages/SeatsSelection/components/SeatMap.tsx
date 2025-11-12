@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { AIRCRAFTS } from "@/mocks/aircrafts";
+import { AIRCRAFTS, getAircraftWithPrices } from "@/mocks/aircrafts";
 import { AircraftType } from "@/interfaces";
 import {
 	SeatLegend,
@@ -13,6 +13,7 @@ import {
 
 export interface SeatMapProps {
 	aircraft: AircraftType;
+	flightBasePrice?: number; // Base price from the flight
 	occupied?: number[];
 	maxSelectable?: number;
 	initialSelected?: number[];
@@ -21,6 +22,7 @@ export interface SeatMapProps {
 
 export const SeatMap = ({
 	aircraft,
+	flightBasePrice = 0,
 	occupied = [],
 	maxSelectable = 999,
 	initialSelected = [], // Default to empty array
@@ -28,7 +30,11 @@ export const SeatMap = ({
 }: SeatMapProps) => {
 	const [selected, setSelected] = useState<number[]>(initialSelected);
 
-	const cfg = AIRCRAFTS[aircraft];
+	// Use the flight's base price to calculate cabin prices, or use default config
+	const cfg = flightBasePrice > 0 
+		? getAircraftWithPrices(aircraft, flightBasePrice)
+		: AIRCRAFTS[aircraft];
+	
 	const rows = useMemo(() => Array.from({ length: cfg.rows }, (_, i) => i + 1), [cfg.rows]);
 	const blocksLetters = useMemo(() => cfg.blocks.map((b) => b.split("")), [cfg.blocks]);
 	const occupiedNums = useMemo(() => new Set(occupied), [occupied]);

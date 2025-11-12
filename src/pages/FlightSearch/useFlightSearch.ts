@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/FlightSearch/useFlightSearch.ts
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
 import { flightsService } from '@/services/api';
 import { Flight, AircraftType } from '@/interfaces';
@@ -17,8 +17,12 @@ const generateFlightNumber = (aircraft: string, index: number): string => {
 };
 
 // Transform API response to match our Flight interface
+// The new API returns: { externalUserId, flights: { success, message, externalUserId, flights: [...], flightCount } }
 const transformFlightData = (apiData: any): Flight[] => {
-	return apiData.flights.map((flight: any, index: number) => ({
+	// Access the nested flights array
+	const flightsArray = apiData?.flights?.flights || [];
+	
+	return flightsArray.map((flight: any, index: number) => ({
 		id: flight.externalFlightId,
 		flightNumber: generateFlightNumber(flight.aircraft, index),
 		origin: {
@@ -35,15 +39,19 @@ const transformFlightData = (apiData: any): Flight[] => {
 		aircraftModel: flight.aircraftModel,
 		date: new Date(flight.flightDate).toISOString().split('T')[0],
 		duration: flight.duration,
-		price: 450, // Base price - will be adjusted based on cabin class
+		price: parseFloat(flight.price) || 0, // Base price from API (economy class price)
+		currency: flight.currency || 'ARS', // Currency from API
 		freeSeats: flight.freeSeats,
-		occupiedSeats: flight.occupiedSeats
+		occupiedSeats: flight.occupiedSeats,
+		flightStatus: flight.flightStatus
 	}));
 };
 
 export const useFlightSearch = () => {
 	const navigate = useNavigate();
-	const { setSelectedFlight } = useAppStore();
+	const queryClient = useQueryClient();
+	const { setSelectedFlight, user } = useAppStore();
+	const userId = user?.id;
 
 	// Fetch flights from API
 	const {
@@ -52,10 +60,14 @@ export const useFlightSearch = () => {
 		error,
 		refetch
 	} = useQuery({
-		queryKey: ['flights'],
-		queryFn: flightsService.getFlights,
+		queryKey: ['flights', userId],
+		queryFn: () => {
+			if (!userId) throw new Error('User ID is required');
+			return flightsService.getFlights(userId);
+		},
 		select: transformFlightData,
 		staleTime: 1000 * 60 * 5, // 5 minutes
+		enabled: !!userId, // Only run query if userId exists
 	});
 
 	const handleSelectFlight = (flight: Flight) => {
@@ -63,6 +75,11 @@ export const useFlightSearch = () => {
 		if (flight.freeSeats === 0) {
 			return;
 		}
+
+		// Invalidate seat availability cache to force fresh data
+		queryClient.invalidateQueries({
+			queryKey: ['seatAvailability', flight.id]
+		});
 
 		setSelectedFlight(flight);
 		navigate(`/seleccionar-asientos/${flight.id}`);

@@ -26,11 +26,14 @@ export interface Flight {
     time: string;
   };
   freeSeats?: number;
+  occupiedSeats?: number;
   aircraft: AircraftType;
   aircraftModel: string;
   date: string;
   duration: string;
   price: number;
+  currency?: string; // Currency from API (e.g., "ARS", "USD")
+  flightStatus?: "ON_TIME" | "DELAYED" | "CANCELLED";
 }
 
 export interface FlightSeatAvailability {
@@ -83,4 +86,32 @@ export type Reservation = {
 
 export interface CardReservationProps {
   reservation: Reservation;
+}
+
+// Auth interfaces
+export interface User {
+  id: string;
+  email: string;
+  rol: string;
+  nombre_completo: string;
+  nacionalidad: string;
+  telefono: string;
+  email_verified: boolean;
+  created_at: string;
+  updated_at: string;
+  last_login_at: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: User;
+    token: string;
+  };
 }

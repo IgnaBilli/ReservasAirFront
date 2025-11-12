@@ -5,6 +5,21 @@ import { Card } from '@/components/ui/Card';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { formatCurrency } from '@/utils';
 
+const formatFlightDate = (dateString: string): string => {
+	// Parse using UTC to avoid timezone offset issues
+	const date = new Date(dateString);
+	const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+	const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+	
+	// Use UTC methods to get the correct date components
+	const dayOfWeek = days[date.getUTCDay()];
+	const day = date.getUTCDate();
+	const month = months[date.getUTCMonth()];
+	const year = date.getUTCFullYear();
+	
+	return `${dayOfWeek}, ${day} ${month} ${year}`;
+};
+
 const FlightSearchPage = () => {
 	const {
 		flights,
@@ -53,8 +68,10 @@ const FlightSearchPage = () => {
 							</p>
 						</Card>
 					) : (
-						flights.slice(0, 6).map((flight) => {
+						flights.slice(0, 10).map((flight) => {
 							const isFull = isFlightFull(flight);
+							console.log(`Vuelo ${flight.flightNumber} - Status:`, flight.flightStatus);
+
 							return (
 								<Card key={flight.id} className={`transition-all ${isFull ? 'opacity-60' : 'hover:shadow-md'}`}>
 									<div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
@@ -67,14 +84,22 @@ const FlightSearchPage = () => {
 													</div>
 													<span className="font-bold text-lg text-gray-800">{flight.flightNumber}</span>
 												</div>
-												<span className="text-gray-600 w-32">{flight.aircraftModel}</span>
 												<span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-semibold">
 													{flight.aircraft}
+												</span>
+												<span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+													<span>📅</span>
+													<span>{formatFlightDate(flight.date)}</span>
 												</span>
 												{/* Indicador de vuelo completo */}
 												{isFull && (
 													<span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-semibold">
 														COMPLETO
+													</span>
+												)}
+												{flight.flightStatus === "DELAYED" && (
+													<span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-semibold">
+														DEMORADO
 													</span>
 												)}
 											</div>
@@ -114,8 +139,13 @@ const FlightSearchPage = () => {
 										<div className="lg:col-span-4 flex flex-col text-center lg:text-right">
 											<div className="mb-4">
 												<div className="text-xs text-gray-600 mb-1">Desde</div>
-												<div className={`text-3xl font-bold ${isFull ? 'text-gray-400' : 'text-[#74B5CD]'}`}>
-													{formatCurrency(flight.price)}
+												<div className="flex items-start justify-center lg:justify-end gap-1">
+													<span className={`text-xs font-medium mt-1 ${isFull ? 'text-gray-400' : 'text-gray-500'}`}>
+														{flight.currency || 'ARS'}
+													</span>
+													<div className={`text-3xl font-bold ${isFull ? 'text-gray-400' : 'text-[#74B5CD]'}`}>
+														{formatCurrency(flight.price)}
+													</div>
 												</div>
 												<div className="text-xs text-gray-500">Por persona</div>
 											</div>

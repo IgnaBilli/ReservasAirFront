@@ -2,6 +2,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Reservation } from '@/interfaces';
+import { authService } from '@/services/api';
+import { useAppStore } from '@/store/useAppStore';
+import { toast } from 'react-toastify';
 
 interface UseCardReservationProps {
 	reservation: Reservation;
@@ -16,10 +19,13 @@ export const useCardReservation = ({
 }: UseCardReservationProps) => {
 	const navigate = useNavigate();
 	const [showCancelModal, setShowCancelModal] = useState(false);
+	const [isVerifying, setIsVerifying] = useState(false);
+	const { user } = useAppStore();
 
 	// Calculate flight date from reservation date
 	const flightDate = new Date(reservation.flightData.flightDate);
-	const isFlightPast = flightDate < new Date();
+	const currentDate = new Date();
+	const isFlightPast = flightDate < currentDate;
 	const canRequestRefund = reservation.status === "PAID" && !isFlightPast;
 	const canModifySeat = reservation.status !== "PAID" && reservation.status !== "CANCELLED";
 
@@ -32,9 +38,53 @@ export const useCardReservation = ({
 		setShowCancelModal(true);
 	};
 
-	const handleConfirmRefund = () => {
-		setShowCancelModal(false);
-		onCancelReservation(reservation.reservationId);
+	const handleConfirmRefund = async () => {
+		// Verificar si el usuario existe antes de proceder con el reembolso
+		if (!user?.id) {
+			toast.error("Error: Usuario no autenticado.", {
+				closeButton: false,
+				autoClose: 3000
+			});
+			setShowCancelModal(false);
+			return;
+		}
+
+		setIsVerifying(true);
+
+		try {
+			const userCheckResult = await authService.checkUserExists(user.id);
+			
+			if (!userCheckResult.exists) {
+				// Usuario no existe - cerrar sesión
+				setShowCancelModal(false);
+				setIsVerifying(false);
+				
+				toast.error("Tu usuario ya no existe en el sistema. Serás redirigido al login.", {
+					closeButton: false,
+					autoClose: 5000
+				});
+
+				// Esperar un momento para que el usuario vea el mensaje
+				setTimeout(() => {
+					useAppStore.getState().logout();
+					navigate('/login');
+				}, 2000);
+				return;
+			}
+
+			// Si el usuario existe, proceder con el reembolso
+			setShowCancelModal(false);
+			setIsVerifying(false);
+			onCancelReservation(reservation.reservationId);
+		} catch (error) {
+			setIsVerifying(false);
+			console.error('Error al verificar usuario:', error);
+			toast.error("Error al verificar los datos. Por favor intenta nuevamente.", {
+				closeButton: false,
+				autoClose: 3000
+			});
+			setShowCancelModal(false);
+		}
 	};
 
 	const getStatusVariant = (status: string) => {
@@ -70,6 +120,7 @@ export const useCardReservation = ({
 		canModifySeat,
 		showCancelModal,
 		isProcessing: isCancelling,
+		isVerifying,
 		seatNumbers,
 		seatCount,
 		handleModifySeat,

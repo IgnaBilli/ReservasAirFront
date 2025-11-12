@@ -1,10 +1,13 @@
 // src/App.tsx
+import { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Router from './Router';
+import { Navigation } from './components/Navigation';
+import { useAppStore } from './store/useAppStore';
 
 // Create a client with optimized settings
 const queryClient = new QueryClient({
@@ -22,9 +25,17 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const initAuth = useAppStore((state) => state.initAuth);
+
+  // Initialize authentication state on app mount
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <Navigation />
         <Router />
         <ToastContainer
           position="bottom-right"

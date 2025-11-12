@@ -3,14 +3,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
-import { reservationsService, paymentService } from '@/services/api';
+import { reservationsService } from '@/services/api';
 import { Reservation } from '@/interfaces';
 import { toast } from 'react-toastify';
 
 export const useMyReservations = () => {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const { userId } = useAppStore();
+	const { user } = useAppStore();
+	const userId = user?.id;
 	const [cancellingId, setCancellingId] = useState<number | null>(null);
 
 	// Fetch user reservations
@@ -20,21 +21,23 @@ export const useMyReservations = () => {
 		error,
 	} = useQuery({
 		queryKey: ['reservations', userId],
-		queryFn: () => reservationsService.getUserReservations(userId),
+		queryFn: () => {
+			if (!userId) throw new Error('User ID is required');
+			return reservationsService.getUserReservations(userId);
+		},
 		staleTime: 1000 * 60 * 5, // 5 minutes - longer cache time
 		refetchOnWindowFocus: false, // Don't refetch on window focus
+		enabled: !!userId, // Only run query if userId exists
 	});
 
 	// Mutation for cancelling reservation
 	const cancelReservationMutation = useMutation({
 		mutationFn: async (reservationId: number) => {
+			if (!userId) throw new Error('User ID is required');
 			setCancellingId(reservationId);
 
-			// Step 1: Cancel reservation
+			// Cancel reservation
 			await reservationsService.cancelReservation(reservationId);
-
-			// Step 2: Process refund
-			await paymentService.cancelPayment(reservationId, userId);
 
 			return reservationId;
 		},
@@ -78,12 +81,16 @@ export const useMyReservations = () => {
 			});
 
 			setCancellingId(null);
+			
+			// Refetch reservations to get updated data from server
+			queryClient.invalidateQueries({
+				queryKey: ['reservations', userId]
+			});
 		},
 		onSettled: () => {
-			// Always refetch after error or success but without forcing a full reload
-			queryClient.invalidateQueries({
-				queryKey: ['reservations', userId],
-				refetchType: 'none' // Don't force immediate refetch
+			// Refetch after operation completes
+			queryClient.refetchQueries({
+				queryKey: ['reservations', userId]
 			});
 		}
 	});

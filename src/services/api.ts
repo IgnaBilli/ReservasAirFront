@@ -1,58 +1,250 @@
 // src/services/api.ts
-import { FlightSeatAvailability } from '@/interfaces';
+import { FlightSeatAvailability, LoginRequest, LoginResponse } from '@/interfaces';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+const AUTH_API_URL = 'https://grupo5-usuarios.vercel.app/api'
+
+// Token management
+const TOKEN_KEY = 'auth_token';
+const USER_KEY = 'auth_user';
+
+export const tokenManager = {
+  getToken: (): string | null => {
+    return localStorage.getItem(TOKEN_KEY);
+  },
+  setToken: (token: string): void => {
+    localStorage.setItem(TOKEN_KEY, token);
+  },
+  removeToken: (): void => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+  },
+  getUser: () => {
+    const userStr = localStorage.getItem(USER_KEY);
+    if (!userStr) return null;
+    try {
+      return JSON.parse(userStr);
+    } catch (e) {
+      console.error('Error parsing user data:', e);
+      return null;
+    }
+  },
+  setUser: (user: any): void => {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  }
+};
 
 // Helper para manejar respuestas
 async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok)
-    throw new Error(`HTTP error! status: ${response.status}`);
+  if (!response.ok) {
+    // If unauthorized, remove token but do NOT redirect here.
+    // Let the caller decide how to handle 401 to avoid full page reloads.
+    if (response.status === 401) {
+      tokenManager.removeToken();
+    }
+    // Try to get a useful message from the server
+    let text: string | null = null;
+    try {
+      const t = await response.text();
+      text = t && t.length ? t : null;
+    } catch (e) {
+      /* ignore */
+    }
+    throw new Error(text || `HTTP error! status: ${response.status}`);
+  }
+
+  // Some endpoints may return no content (204). Let callers handle that case.
+  const contentType = response.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    // Return an empty object as unknown T if there's no JSON body
+    // Caller can decide if that's acceptable.
+    // @ts-ignore
+    return {};
+  }
   return response.json();
 }
 
+// Helper para crear headers con autenticación
+function getAuthHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  
+  const token = tokenManager.getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
+}
+
+// Auth Service
+export const authService = {
+  login: async (credentials: LoginRequest): Promise<LoginResponse> => {
+    console.log('authService.login()', { email: credentials.email });
+    const response = await fetch(`${AUTH_API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    });
+
+    // If unauthorized, don't redirect; return a controlled error
+    if (response.status === 401) {
+      // Clear token if any
+      tokenManager.removeToken();
+      // Try to parse message
+      let parsed: any = null;
+      try {
+        parsed = await response.json();
+      } catch (e) {
+        // not JSON
+      }
+      const message = parsed?.message || 'Credenciales inválidas';
+      throw new Error(message);
+    }
+
+    if (!response.ok) {
+      throw new Error(`Login error: ${response.status}`);
+    }
+
+    // If response has no JSON body (204), throw a clear error
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Login falló: respuesta sin contenido JSON');
+    }
+
+    const data = await response.json();
+    return data as LoginResponse;
+  },
+
+  logout: () => {
+    tokenManager.removeToken();
+  },
+
+  isAuthenticated: (): boolean => {
+    return tokenManager.getToken() !== null;
+  },
+
+  getUser: () => {
+    return tokenManager.getUser();
+  },
+
+  saveUser: (user: any) => {
+    tokenManager.setUser(user);
+  },
+
+  checkUserExists: async (userId: string): Promise<{ exists: boolean; user?: any }> => {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    });
+
+    // 404 means user doesn't exist
+    if (response.status === 404) {
+      return { exists: false };
+    }
+
+    // 200 means user exists
+    if (response.ok) {
+      const data = await response.json();
+      return { exists: true, user: data };
+    }
+
+    // Other errors
+    throw new Error(`Error checking user: ${response.status}`);
+  }
+};
+
 // Flights Service
 export const flightsService = {
-  getFlights: async () => {
-    const response = await fetch(`${API_BASE_URL}/flights`);
+  getFlights: async (userId: string) => {
+    console.log('Fetching flights for user:', userId);
+    const response = await fetch(`${API_BASE_URL}/flight-cart/${userId}`, {
+      headers: getAuthHeaders(),
+    });
     return handleResponse(response);
   },
 
   getSeatsByFlightId: async (externalFlightId: number): Promise<FlightSeatAvailability> => {
-    const response = await fetch(`${API_BASE_URL}/seats/flight/${externalFlightId}`);
+    const response = await fetch(`${API_BASE_URL}/seats/flight/${externalFlightId}`, {
+      headers: getAuthHeaders(),
+    });
     return handleResponse<FlightSeatAvailability>(response);
+  },
+
+  checkFlightCancelled: async (externalFlightId: number): Promise<{ cancelled: boolean }> => {
+    const response = await fetch(`${API_BASE_URL}/flights/${externalFlightId}/isCancelled`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<{ cancelled: boolean }>(response);
   }
 };
 
 // Reservations Service
 export const reservationsService = {
-  getUserReservations: async (externalUserId: number) => {
+  getUserReservations: async (userId: string) => {
     // Note: The endpoint pattern suggests we might need to use a specific flightId
     // For now, we'll fetch all user reservations
     // You might need to adjust this based on your backend requirements
-    const response = await fetch(`${API_BASE_URL}/reservation/user/${externalUserId}`);
+    console.log('Fetching reservations for user:', userId);
+    const response = await fetch(`${API_BASE_URL}/reservation/user/${userId}`, {
+      headers: getAuthHeaders(),
+    });
     // If the above doesn't work, you might need to fetch by specific flight IDs
     return handleResponse(response);
   },
 
-  createReservation: async (externalFlightId: number, externalUserId: number, seatIds: number[]) => {
+  createReservation: async (externalFlightId: number, userId: string, seatIds: number[]) => {
     const response = await fetch(
-      `${API_BASE_URL}/reservation/book/${externalFlightId}/${externalUserId}`,
+      `${API_BASE_URL}/reservation/book/${externalFlightId}/${userId}`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           seatIds,
         })
       }
     );
-    return handleResponse(response);
+    
+    // Check if response is ok first
+    if (!response.ok) {
+      // Try to get error details from response body
+      let errorText: string | null = null;
+      try {
+        const errorData = await response.json();
+        if (errorData.message) {
+          throw new Error(errorData.message);
+        }
+      } catch (e) {
+        // If JSON parse fails, try getting text
+        try {
+          errorText = await response.text();
+        } catch {}
+      }
+      throw new Error(errorText || `HTTP error! status: ${response.status}`);
+    }
+
+    // Parse the JSON response
+    const data = await response.json();
+    
+    // Check if the response indicates seats are already taken
+    if (data.success === false && data.message && data.message.includes('already taken')) {
+      throw new Error('SEATS_ALREADY_TAKEN');
+    }
+    
+    return data;
   },
 
   cancelReservation: async (reservationId: number) => {
     const response = await fetch(`${API_BASE_URL}/reservation/cancel/${reservationId}`, {
       method: 'POST',
+      headers: getAuthHeaders(),
     });
     return handleResponse(response);
   }
@@ -60,31 +252,43 @@ export const reservationsService = {
 
 // Payment Service
 export const paymentService = {
-  confirmPayment: async (reservationId: number, externalUserId: number) => {
+  checkPaymentStatus: async (reservationId: number) => {
+    const response = await fetch(`${API_BASE_URL}/payment/notify/${reservationId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  checkPaymentFailed: async (reservationId: number) => {
+    const response = await fetch(`${API_BASE_URL}/payment/notify/failed/${reservationId}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  confirmPayment: async (reservationId: number, userId: string) => {
     const response = await fetch(`${API_BASE_URL}/payment/confirm`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         paymentStatus: "SUCCESS",
         reservationId,
-        externalUserId
+        externalUserId: userId
       })
     });
     return handleResponse(response);
   },
 
-  cancelPayment: async (reservationId: number, externalUserId: number) => {
+  cancelPayment: async (reservationId: number, userId: string) => {
     const response = await fetch(`${API_BASE_URL}/payment/cancel`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         paymentStatus: "REFUND",
         reservationId,
-        externalUserId
+        externalUserId: userId
       })
     });
     return handleResponse(response);

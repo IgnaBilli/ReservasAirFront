@@ -1,10 +1,15 @@
 // src/store/useAppStore.ts
 import { create } from 'zustand';
-import { Flight } from '@/interfaces';
+import { Flight, User } from '@/interfaces';
+import { authService } from '@/services/api';
 
 interface AppState {
-	// User
-	userId: number; // For this example, we'll use a fixed userId
+	// Auth
+	user: User | null;
+	isAuthenticated: boolean;
+	
+	// User (legacy - will use user.id from auth)
+	userId: number;
 
 	// Flight selection
 	selectedFlight: Flight | null;
@@ -16,10 +21,16 @@ interface AppState {
 	timerStartTime: number | null;
 	timerDuration: number; // in seconds (2 minutes = 120 seconds)
 	isTimerActive: boolean;
+	isTimerPaused: boolean;
 
 	// UI State
 	isLoading: boolean;
 	currentStep: 'search' | 'seats' | 'confirmation' | 'payment' | 'success';
+
+	// Auth Actions
+	setUser: (user: User | null) => void;
+	logout: () => void;
+	initAuth: () => void;
 
 	// Actions
 	setSelectedFlight: (flight: Flight) => void;
@@ -30,6 +41,7 @@ interface AppState {
 	// Timer actions
 	startTimer: () => void;
 	stopTimer: () => void;
+	pauseTimer: () => void;
 	getTimeLeft: () => number;
 
 	resetSelection: () => void;
@@ -37,17 +49,58 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set, get) => ({
 	// Initial state
-	userId: 1, // Fixed user ID for demo purposes
+	user: null,
+	isAuthenticated: authService.isAuthenticated(),
+	userId: 1, // Legacy - will be replaced by user.id
 	selectedFlight: null,
 	selectedSeats: [],
 
 	// Timer state
 	timerStartTime: null,
-	timerDuration: 240, // 2 minutes in seconds
+	timerDuration: 900, // 15 minutes in seconds
 	isTimerActive: false,
+	isTimerPaused: false,
 
 	isLoading: false,
 	currentStep: 'search',
+
+	// Auth Actions
+	setUser: (user) => {
+		// Persist user to localStorage when setting
+		if (user) {
+			authService.saveUser(user);
+		}
+		set({ 
+			user, 
+			isAuthenticated: user !== null,
+			userId: user ? parseInt(user.id) : 1
+		});
+		
+	},
+
+	logout: () => {
+		authService.logout();
+		set({
+			user: null,
+			isAuthenticated: false,
+			selectedFlight: null,
+			selectedSeats: [],
+			currentStep: 'search',
+			isTimerActive: false,
+			timerStartTime: null,
+			isTimerPaused: false
+		});
+	},
+
+	initAuth: () => {
+		const isAuth = authService.isAuthenticated();
+		const user = authService.getUser();
+		set({ 
+			isAuthenticated: isAuth,
+			user: user,
+			userId: user ? parseInt(user.id) : 1
+		});
+	},
 
 	// Actions
 	setSelectedFlight: (flight) => {
@@ -68,12 +121,18 @@ export const useAppStore = create<AppState>((set, get) => ({
 	// Timer actions
 	startTimer: () => set({
 		timerStartTime: Date.now(),
-		isTimerActive: true
+		isTimerActive: true,
+		isTimerPaused: false
 	}),
 
 	stopTimer: () => set({
 		isTimerActive: false,
-		timerStartTime: null
+		timerStartTime: null,
+		isTimerPaused: false
+	}),
+
+	pauseTimer: () => set({
+		isTimerPaused: true
 	}),
 
 	getTimeLeft: () => {
@@ -91,6 +150,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 		currentStep: 'search',
 		// Stop timer when resetting
 		isTimerActive: false,
-		timerStartTime: null
+		timerStartTime: null,
+		isTimerPaused: false
 	})
 }));

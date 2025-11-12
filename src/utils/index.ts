@@ -27,7 +27,9 @@ export const formatCurrency = (amount: number) => {
 };
 
 export const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('es-AR', {
+  // Parse the date and use UTC to avoid timezone issues
+  const dateObj = new Date(date);
+  return new Date(dateObj.getUTCFullYear(), dateObj.getUTCMonth(), dateObj.getUTCDate()).toLocaleDateString('es-AR', {
     weekday: 'short',
     year: 'numeric',
     month: 'short',
