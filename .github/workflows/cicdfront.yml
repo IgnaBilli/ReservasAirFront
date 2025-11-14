@@ -50,29 +50,3 @@ jobs:
   #         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
 
-  deploy:
-    name: Deploy to Railway
-    runs-on: ubuntu-latest
-    needs: ci
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Select Railway Environment
-        run: railway environment production
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-
-
-      - name: Deploy to Railway
-        run: railway up --service 254071e7-d428-46e0-93d8-81fdc5566478 --ci
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
