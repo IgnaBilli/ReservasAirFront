@@ -52,7 +52,7 @@ export const useMyReservations = () => {
 			queryClient.setQueryData(['reservations', userId], (old: Reservation[] = []) => {
 				return old.map(reservation =>
 					reservation.reservationId === reservationId
-						? { ...reservation, status: 'CANCELLED' }
+						? { ...reservation, status: 'PENDING_REFUND' }
 						: reservation
 				);
 			});
@@ -103,6 +103,16 @@ export const useMyReservations = () => {
 		cancelReservationMutation.mutate(reservationId);
 	};
 
+	const handleRefreshReservations = () => {
+		queryClient.invalidateQueries({
+			queryKey: ['reservations', userId]
+		});
+		toast.info("Actualizando reservas...", {
+			closeButton: false,
+			autoClose: 2000
+		});
+	};
+
 	// Sort reservations by creation date (newest first)
 	const sortedReservations = (Array.isArray(reservations) ? [...reservations] : []).sort((a: Reservation, b: Reservation) =>
 		new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -114,6 +124,7 @@ export const useMyReservations = () => {
 		error,
 		cancellingId, // Return the ID that is currently being cancelled
 		handleBackToSearch,
-		handleCancelReservation
+		handleCancelReservation,
+		handleRefreshReservations
 	};
 };

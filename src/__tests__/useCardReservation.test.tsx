@@ -448,7 +448,7 @@ describe("useCardReservation", () => {
         { wrapper: TestWrapper }
       );
 
-      expect(result.current.getStatusText("PENDING")).toBe("Pendiente");
+      expect(result.current.getStatusText("PENDING")).toBe("Pendiente de Pago");
     });
   });
 

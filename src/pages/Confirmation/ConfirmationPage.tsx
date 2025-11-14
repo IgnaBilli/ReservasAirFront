@@ -15,7 +15,6 @@ const ConfirmationPage = () => {
 		seatsWithPrices,
 		totalPrice,
 		isLoading,
-		isWaitingPayment,
 		showTimeUpModal,
 		showPaymentModal,
 		handleTimeUp,
@@ -135,23 +134,16 @@ const ConfirmationPage = () => {
 				<Modal
 					size="sm"
 					isOpen={showPaymentModal}
-					onClose={() => !isLoading && !isWaitingPayment && setShowPaymentModal(false)}
+					onClose={() => !isLoading && setShowPaymentModal(false)}
 				>
 					<div className="text-center">
-						{isLoading ? (
-							<>
-								<LoadingSpinner size="lg" className="mx-auto mb-4" />
-								<h3 className="text-lg font-semibold mb-2 text-gray-800">Procesando Reserva</h3>
-								<p className="text-gray-600">Por favor espera mientras procesamos tu reserva...</p>
-							</>
-						) : isWaitingPayment ? (
-							<>
-								<LoadingSpinner size="lg" className="mx-auto mb-4" />
-								<h3 className="text-lg font-semibold mb-2 text-gray-800">Esperando Confirmación de Pago</h3>
-								<p className="text-gray-600">Reserva creada exitosamente.</p>
-								<p className="text-gray-600">Esperando la confirmación del pago...</p>
-							</>
-						) : (
+					{isLoading ? (
+						<>
+							<LoadingSpinner size="lg" className="mx-auto mb-4" />
+							<h3 className="text-lg font-semibold mb-2 text-gray-800">Procesando Reserva</h3>
+							<p className="text-gray-600">Por favor espera mientras procesamos tu reserva...</p>
+						</>
+					) : (
 							<>
 								<div className="text-4xl mb-4 text-blue-600">💳</div>
 								<h3 className="text-lg font-semibold mb-2 text-gray-800">Confirmar Pago</h3>
