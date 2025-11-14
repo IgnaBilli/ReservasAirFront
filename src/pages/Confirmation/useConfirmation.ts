@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAppStore } from '@/store/useAppStore';
-import { reservationsService, paymentService, flightsService, authService } from '@/services/api';
+import { reservationsService, flightsService, authService } from '@/services/api';
 import { getAircraftWithPrices } from '@/mocks/aircrafts';
 import { seatNumToVisual } from '@/utils';
 import { toast } from 'react-toastify';
@@ -25,7 +25,6 @@ export const useConfirmation = () => {
 
 	const [showTimeUpModal, setShowTimeUpModal] = useState(false);
 	const [showPaymentModal, setShowPaymentModal] = useState(false);
-	const [isWaitingPayment, setIsWaitingPayment] = useState(false);
 	const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 	
 	// Guardar datos localmente para que no se pierdan después del reset
@@ -257,7 +256,6 @@ export const useConfirmation = () => {
 		seatsWithPrices,
 		totalPrice,
 		isLoading,
-		isWaitingPayment,
 		showTimeUpModal,
 		showPaymentModal,
 		handleTimeUp,
