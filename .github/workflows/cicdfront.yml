@@ -44,7 +44,7 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Use production environment
-        run: railway environment use a82583eb-54c4-461e-812c-1ad8663af405
+        run: railway environment use production
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
