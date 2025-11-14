@@ -67,9 +67,10 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Select Railway Environment
-        run: railway environment set production
+        run: railway env use production
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
 
       - name: Deploy to Railway
         run: railway up --service 254071e7-d428-46e0-93d8-81fdc5566478 --ci
