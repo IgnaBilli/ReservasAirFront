@@ -93,6 +93,12 @@ export const useCardReservation = ({
 				return "success";
 			case "CANCELLED":
 				return "danger";
+			case "PENDING_REFUND":
+				return "warning";
+			case "PENDING":
+				return "default";
+			case "FAILED":
+				return "danger";
 			default:
 				return "default";
 		}
@@ -104,8 +110,14 @@ export const useCardReservation = ({
 				return "Pagado";
 			case "CANCELLED":
 				return "Cancelado";
+			case "PENDING_REFUND":
+				return "Reembolso Pendiente";
+			case "PENDING":
+				return "Pendiente de Pago";
+			case "FAILED":
+				return "Pago Fallido";
 			default:
-				return "Pendiente";
+				return "Desconocido";
 		}
 	};
 

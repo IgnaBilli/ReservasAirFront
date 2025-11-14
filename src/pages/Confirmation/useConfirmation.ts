@@ -161,14 +161,23 @@ export const useConfirmation = () => {
 			const resId = data.reservationId;
 			
 			setLoading(false);
+			setShowPaymentModal(false);
+			stopTimer();
 			
-			toast.info("Reserva creada. Esperando confirmación de pago...", {
+			toast.success("Reserva creada exitosamente. Pendiente de confirmación de pago.", {
 				closeButton: false,
 				autoClose: 3000
 			});
 
-			// Start polling for payment confirmation
-			startPaymentPolling(resId);
+			// Invalidar queries para que se actualice la lista de reservas
+			queryClient.invalidateQueries({ queryKey: ['reservations'] });
+			queryClient.invalidateQueries({ queryKey: ['seatAvailability'] });
+
+			// Ir directo a mis reservas sin polling
+			navigate('/mis-reservas');
+			
+			// Comentado: Start polling for payment confirmation
+			// startPaymentPolling(resId);
 		},
 		onError: (error) => {
 			setLoading(false);

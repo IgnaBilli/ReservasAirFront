@@ -93,6 +93,12 @@ export const useFlightSearch = () => {
 		return flight.freeSeats === 0;
 	};
 
+	const handleRefreshFlights = () => {
+		queryClient.invalidateQueries({
+			queryKey: ['flights', userId]
+		});
+	};
+
 	return {
 		flights: flightsData || [],
 		isLoading,
@@ -100,6 +106,7 @@ export const useFlightSearch = () => {
 		refetch,
 		handleSelectFlight,
 		handleViewReservations,
-		isFlightFull
+		isFlightFull,
+		handleRefreshFlights
 	};
 };
