@@ -45,8 +45,8 @@ jobs:
 
      
       - name: Deploy to Railway
-        run: railway up --service c87be8c2-6e8c-4971-872b-40082ff7f033 --ci
+        run: railway up --service 254071e7-d428-46e0-93d8-81fdc5566478 --ci
         env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN3 }}
 
 
