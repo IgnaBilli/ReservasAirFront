@@ -3,7 +3,7 @@ import '@testing-library/jest-dom';
 import { Button } from '../components/ui/Button';
 
 
-// Test
+// Test2
 describe('Button component', () => {
   test('muestra el texto pasado como children', () => {
     render(Button({ children: 'Reservar' }));
