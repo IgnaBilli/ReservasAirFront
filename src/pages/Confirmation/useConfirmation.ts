@@ -54,91 +54,6 @@ export const useConfirmation = () => {
 		};
 	}, []);
 
-	// Start polling for payment status (both success and failed)
-	const startPaymentPolling = (resId: number) => {
-		console.log('🔄 Iniciando polling para reserva:', resId);
-		setIsWaitingPayment(true);
-		
-		// Clear any existing interval
-		if (pollingIntervalRef.current) {
-			clearInterval(pollingIntervalRef.current);
-		}
-
-		// Poll every 5 seconds
-		pollingIntervalRef.current = setInterval(async () => {
-			try {
-				// Check both endpoints simultaneously - el que responda true primero gana
-				const [successResponse, failedResponse] = await Promise.all([
-					paymentService.checkPaymentStatus(resId).catch(err => {
-						console.error('Error checking success status:', err);
-						return { success: false };
-					}),
-					paymentService.checkPaymentFailed(resId).catch(err => {
-						console.error('Error checking failed status:', err);
-						return { success: false };
-					})
-				]) as [{ success: boolean }, { success: boolean }];
-				
-				// Check if payment was confirmed (success endpoint returns true)
-				if (successResponse.success) {
-					console.log('✅ Pago confirmado!');
-					
-					// Stop polling
-					if (pollingIntervalRef.current) {
-						clearInterval(pollingIntervalRef.current);
-						pollingIntervalRef.current = null;
-					}
-
-					setIsWaitingPayment(false);
-
-					// Invalidate queries to refresh data
-					queryClient.invalidateQueries({ queryKey: ['reservations'] });
-					queryClient.invalidateQueries({ queryKey: ['seatAvailability'] });
-
-					setLoading(false);
-					setShowPaymentModal(false);
-					setCurrentStep('success');
-					stopTimer();
-
-					toast.success("Pago confirmado con éxito", {
-						closeButton: false,
-						autoClose: 3000
-					});
-
-					navigate('/mis-reservas');
-				} 
-				// Check if payment failed (failed endpoint returns true)
-				else if (failedResponse.success) {
-					console.log('❌ Pago falló!');
-					
-					// Stop polling
-					if (pollingIntervalRef.current) {
-						clearInterval(pollingIntervalRef.current);
-						pollingIntervalRef.current = null;
-					}
-
-					setIsWaitingPayment(false);
-					setLoading(false);
-					setShowPaymentModal(false);
-
-					toast.error("El pago ha fallado. Por favor intenta nuevamente.", {
-						closeButton: false,
-						autoClose: 5000
-					});
-
-					// Redirect to reservations to see status
-					navigate('/mis-reservas');
-				}
-				// Both returned false - payment still pending
-				else {
-					console.log('⏳ Pago aún pendiente...');
-				}
-			} catch (error) {
-				console.error('❌ Error al verificar estado del pago:', error);
-			}
-		}, 5000); // Poll every 5 seconds
-	};
-
 	// Mutation for creating reservation
 	const createReservationMutation = useMutation({
 		mutationFn: async () => {
@@ -157,9 +72,7 @@ export const useConfirmation = () => {
 
 			return reservationResponse;
 		},
-		onSuccess: (data) => {
-			const resId = data.reservationId;
-			
+		onSuccess: () => {
 			setLoading(false);
 			setShowPaymentModal(false);
 			stopTimer();
