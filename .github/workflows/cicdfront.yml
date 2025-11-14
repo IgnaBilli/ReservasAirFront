@@ -45,7 +45,8 @@ jobs:
 
      
       - name: Deploy to Railway
-        run: railway up --service ReservasAirFront --ci
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service ReservasAirFront --ci
+
 
