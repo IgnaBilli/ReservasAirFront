@@ -22,8 +22,16 @@ export const useCardReservation = ({
 	const [isVerifying, setIsVerifying] = useState(false);
 	const { user } = useAppStore();
 
-	// Calculate flight date from reservation date
+	// Calculate actual flight datetime by combining date and time
 	const flightDate = new Date(reservation.flightData.flightDate);
+	
+	// Parse the departure time (format: "HH:MM")
+	const departureTime = reservation.flightData.origin.time;
+	if (departureTime && departureTime.includes(':')) {
+		const [hours, minutes] = departureTime.split(':').map(Number);
+		flightDate.setUTCHours(hours, minutes, 0, 0);
+	}
+	
 	const currentDate = new Date();
 	const isFlightPast = flightDate < currentDate;
 	const canRequestRefund = reservation.status === "PAID" && !isFlightPast;
